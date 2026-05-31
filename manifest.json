@@ -1,0 +1,10 @@
+{
+  "name": "Calcetto du jeudi",
+  "short_name": "Calcetto",
+  "description": "Gestion des inscriptions calcetto",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1c1c1e",
+  "gcm_sender_id": "482941778795"
+}
