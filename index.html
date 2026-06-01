@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Calcetto">
 <meta name="theme-color" content="#0a0a1a">
 <title>Calcetto du jeudi</title>
-<link rel="manifest" href="/calcetto/manifest.json">
+<link rel="manifest" href="/manifest.json">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
@@ -41,32 +41,22 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-deep);color:var(--text);min-height:100vh;}
 .screen{display:none;flex-direction:column;min-height:100vh;}
 .screen.active{display:flex;}
-
-/* LOGIN */
 .login-wrap{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;flex:1;max-width:420px;margin:0 auto;width:100%;}
 .logo-zone{text-align:center;margin-bottom:2rem;}
-.logo-svg{margin:0 auto 1rem;}
 .app-title{font-size:22px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--silver-light);margin-bottom:4px;}
 .app-sub{font-size:13px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;}
 .field-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
-input[type=tel],input[type=password]{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:10px;font-size:16px;background:var(--bg-card);color:var(--text);outline:none;-webkit-appearance:none;}
-input:focus{border-color:var(--blue);}
-.btn-main{width:100%;padding:14px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:12px;letter-spacing:.5px;}
-.btn-main:hover{background:var(--blue-dark);}
+input[type=tel],input[type=password],select{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:10px;font-size:16px;background:var(--bg-card);color:var(--text);outline:none;-webkit-appearance:none;}
+input:focus,select:focus{border-color:var(--blue);}
+.btn-main{width:100%;padding:14px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:12px;}
 .btn-danger{width:100%;padding:13px;background:var(--danger);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
 .btn-ghost{width:100%;padding:11px;background:none;color:var(--text-muted);border:1px solid var(--border);border-radius:10px;font-size:14px;cursor:pointer;margin-top:8px;}
 .error-msg{font-size:13px;color:var(--danger);background:rgba(255,59,48,.12);border-radius:8px;padding:10px 14px;margin-top:8px;display:none;border:1px solid rgba(255,59,48,.3);}
-
-/* TOPBAR */
 .topbar{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;}
 .topbar-avatar{width:36px;height:36px;border-radius:50%;background:var(--blue-dark);border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
 .topbar-name{font-size:15px;font-weight:600;color:var(--silver-light);}
 .topbar-pts{font-size:12px;color:var(--text-muted);}
-
-/* CONTENT */
 .content{flex:1;padding:16px;max-width:500px;margin:0 auto;width:100%;}
-
-/* STATUS CARD */
 .status-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;}
 .status-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:12px;}
 .status-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
@@ -75,9 +65,6 @@ input:focus{border-color:var(--blue);}
 .status-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
 .badge-open{background:rgba(0,200,83,.15);color:#00c853;border:1px solid rgba(0,200,83,.3);font-size:12px;font-weight:600;padding:4px 12px;border-radius:99px;}
 .badge-closed{background:rgba(136,136,170,.12);color:var(--text-muted);border:1px solid var(--border);font-size:12px;font-weight:600;padding:4px 12px;border-radius:99px;}
-.badge-warn{background:rgba(255,149,0,.15);color:var(--warn);border:1px solid rgba(255,149,0,.3);font-size:12px;font-weight:600;padding:4px 12px;border-radius:99px;}
-
-/* PRESENCE CARD */
 .presence-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;}
 .presence-inner{padding:16px;}
 .presence-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
@@ -91,14 +78,10 @@ input:focus{border-color:var(--blue);}
 .btn-absent-btn:disabled{opacity:0.35;cursor:not-allowed;}
 .absent-banner{background:rgba(255,59,48,.12);color:var(--danger);font-size:13px;font-weight:600;padding:10px 14px;display:none;align-items:center;gap:8px;border-top:1px solid rgba(255,59,48,.2);}
 .absent-banner.show{display:flex;}
-
-/* BANNERS */
 .banner{border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:10px;display:flex;align-items:flex-start;gap:8px;}
 .banner-info{background:rgba(30,144,255,.12);color:var(--blue);border:1px solid rgba(30,144,255,.2);}
 .banner-warn{background:rgba(255,149,0,.12);color:var(--warn);border:1px solid rgba(255,149,0,.2);}
 .banner-success{background:rgba(0,200,83,.12);color:#00c853;border:1px solid rgba(0,200,83,.2);}
-
-/* LISTE */
 .locked-card{background:var(--bg-card);border:1px dashed var(--border);border-radius:14px;padding:24px;text-align:center;margin-bottom:12px;}
 .locked-text{font-size:14px;color:var(--text-muted);margin-top:8px;}
 .liste-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;}
@@ -112,8 +95,6 @@ input:focus{border-color:var(--blue);}
 .pill-green{background:rgba(0,200,83,.15);color:#00c853;border:1px solid rgba(0,200,83,.3);}
 .pill-red{background:rgba(255,59,48,.15);color:var(--danger);border:1px solid rgba(255,59,48,.3);}
 .pill-warn{background:rgba(255,149,0,.15);color:var(--warn);border:1px solid rgba(255,149,0,.3);}
-
-/* STATS */
 .section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin:14px 0 8px;}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
 .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;}
@@ -132,34 +113,23 @@ input:focus{border-color:var(--blue);}
 .tab-pills{display:flex;gap:6px;margin-bottom:14px;}
 .tab-pill{flex:1;padding:7px 4px;text-align:center;font-size:12px;font-weight:500;border:1px solid var(--border);border-radius:99px;cursor:pointer;color:var(--text-muted);background:none;}
 .tab-pill.active{background:var(--blue);color:#fff;border-color:var(--blue);}
-
-/* ADMIN */
+.player-select-wrap{margin-bottom:12px;}
 .admin-row{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);gap:8px;}
 .admin-row:last-child{border-bottom:none;}
 .rlabel{font-size:12px;font-weight:600;cursor:pointer;padding:5px 10px;border-radius:8px;border:1px solid var(--border);color:var(--text-muted);background:none;}
 .rlabel.sel-abs{background:var(--bg-card2);}
 .rlabel.sel-v{background:rgba(0,200,83,.15);color:#00c853;border-color:#00c853;}
 .rlabel.sel-d{background:rgba(255,59,48,.15);color:var(--danger);border-color:var(--danger);}
-
-/* NAV */
 .bottom-nav{display:flex;border-top:1px solid var(--border);background:var(--bg-card);position:sticky;bottom:0;}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 12px;font-size:10px;color:var(--text-muted);border:none;background:none;cursor:pointer;letter-spacing:.3px;}
 .nav-item.active{color:var(--blue);}
 .nav-item i{font-size:22px;}
-
-/* LOADING */
 .loading-overlay{position:fixed;inset:0;background:var(--bg-deep);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:100;}
 .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-#onesignal-bell-container.onesignal-reset .onesignal-bell-launcher {
-  bottom: 70px !important;
-  right: 10px !important;
-}
 </style>
 </head>
 <body>
-
 <div id="loading-overlay" class="loading-overlay" style="display:none;">
   <div class="spinner"></div>
   <span style="font-size:14px;color:var(--text-muted);">Chargement...</span>
@@ -168,7 +138,7 @@ input:focus{border-color:var(--blue);}
 <div id="s-login" class="screen active">
   <div class="login-wrap">
     <div class="logo-zone">
-      <svg class="logo-svg" width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none" style="display:block;margin:0 auto 1rem;">
         <circle cx="40" cy="40" r="38" fill="#0a0a1a" stroke="#1e90ff" stroke-width="2"/>
         <circle cx="40" cy="40" r="30" fill="none" stroke="#2a2a50" stroke-width="1"/>
         <polygon points="40,10 47,30 68,30 52,43 58,63 40,51 22,63 28,43 12,30 33,30" fill="none" stroke="#d4af37" stroke-width="1.5" stroke-linejoin="round"/>
@@ -243,11 +213,15 @@ input:focus{border-color:var(--blue);}
 
     <div id="tab-stats" style="display:none;">
       <div class="tab-pills">
-        <button class="tab-pill active" id="pill-perso" onclick="switchStat('perso')">Mes stats</button>
+        <button class="tab-pill active" id="pill-perso" onclick="switchStat('perso')">Stats joueur</button>
         <button class="tab-pill" id="pill-classe" onclick="switchStat('classe')">Présence</button>
         <button class="tab-pill" id="pill-rotation" onclick="switchStat('rotation')">Rotation</button>
       </div>
+
       <div id="stat-perso">
+        <div class="player-select-wrap">
+          <select id="player-select-stats" onchange="onPlayerSelectChange()"></select>
+        </div>
         <div class="period-selector" id="period-perso">
           <button class="period-btn" onclick="setPeriod('1m')">1 mois</button>
           <button class="period-btn" onclick="setPeriod('3m')">3 mois</button>
@@ -257,6 +231,7 @@ input:focus{border-color:var(--blue);}
         </div>
         <div id="perso-content"></div>
       </div>
+
       <div id="stat-classe" style="display:none;">
         <div class="period-selector">
           <button class="period-btn" onclick="setPeriodClasse('1m')">1 mois</button>
@@ -267,6 +242,7 @@ input:focus{border-color:var(--blue);}
         </div>
         <div class="liste-card" id="classe-list"></div>
       </div>
+
       <div id="stat-rotation" style="display:none;">
         <div class="banner banner-info"><i class="ti ti-info-circle"></i><span>Ven. 8h–12h : joueurs avec le plus de pts exclus si +10 inscrits.</span></div>
         <div class="liste-card" id="rotation-list"></div>
@@ -284,7 +260,7 @@ input:focus{border-color:var(--blue);}
         <p class="field-label">Confirmer nouveau PIN</p>
         <input type="password" id="confirm-pin" placeholder="••••" style="margin-bottom:10px;" />
         <div class="error-msg" id="pin-change-error">Erreur</div>
-        <div id="pin-change-success" style="display:none;font-size:13px;color:#00c853;background:rgba(0,200,83,.12);border-radius:8px;padding:10px 14px;margin-top:8px;border:1px solid rgba(0,200,83,.2);">✅ PIN changé !</div>
+        <div id="pin-change-success" style="display:none;font-size:13px;color:#00c853;background:rgba(0,200,83,.12);border-radius:8px;padding:10px 14px;margin-top:8px;">✅ PIN changé !</div>
         <button class="btn-main" onclick="doChangePin()" style="margin-top:4px;">Changer mon PIN</button>
       </div>
     </div>
@@ -294,7 +270,7 @@ input:focus{border-color:var(--blue);}
       <div class="section-label">Résultats du <span id="admin-date">—</span></div>
       <div class="liste-card"><div id="admin-list"></div></div>
       <button class="btn-main" id="save-btn" onclick="saveResults()" style="margin-top:12px;">💾 Enregistrer dans Google Sheet</button>
-      <button class="btn-danger" id="cancel-btn" onclick="cancelMatch()" style="margin-top:8px;">❌ Annuler le match</button>
+      <button class="btn-danger" id="cancel-btn" onclick="cancelMatch()">❌ Annuler le match</button>
     </div>
 
   </div>
@@ -305,11 +281,11 @@ input:focus{border-color:var(--blue);}
     <button class="nav-item" id="nav-adm" onclick="switchTab('admin')" style="display:none;"><i class="ti ti-shield"></i>Admin</button>
   </nav>
 </div>
-
 <script>
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbwj_aYlrhynvl-fhHkQFRBwG70sX8iLFLnY0eBVIga0KzYkjdH3DLITMHwmqeFJ3ipC/exec";
 var DB=[],me=null,isAdmin=false,presence='absent',inscrits=[];
 var currentPeriod='all',currentPeriodClasse='all',currentTel='';
+var selectedStatPlayer=null;
 
 function callSheet(action,params){
   var url=SCRIPT_URL+'?action='+encodeURIComponent(action);
@@ -357,9 +333,11 @@ function doLogin(){
       localStorage.setItem('calcetto_tel',currentTel);
       return callSheet('getData').then(function(dataRes){
         DB=dataRes.players||[];
+        inscrits=dataRes.inscrits||[];
         var joueur=null;
         for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===nomJoueur.toLowerCase()){joueur=DB[i];break;}}
         me=joueur||{name:nomJoueur,pts:0,history:[]};
+        selectedStatPlayer=me;
         document.getElementById('loading-overlay').style.display='none';
         enterApp();
       });
@@ -372,7 +350,7 @@ function doLogin(){
 }
 
 function doLogout(){
-  me=null;isAdmin=false;presence='absent';inscrits=[];currentTel='';
+  me=null;isAdmin=false;presence='absent';inscrits=[];currentTel='';selectedStatPlayer=null;
   document.getElementById('s-main').classList.remove('active');
   document.getElementById('s-login').classList.add('active');
   document.getElementById('step-pin').style.display='none';
@@ -397,9 +375,33 @@ function enterApp(){
     buildAdminList();
     document.getElementById('cancel-match-zone').innerHTML='<button class="btn-danger" onclick="cancelMatch()" style="width:100%;margin-bottom:10px;">❌ Annuler le match de jeudi</button>';
   }
-  setPresence(localStorage.getItem('calcetto_presence_'+me.name)||'absent',true);
+  // Initialiser le sélecteur de joueur dans les stats
+  buildPlayerSelect();
+  // Restaurer présence depuis le sheet
+  var savedPresence=inscrits.indexOf(me.name)!==-1?'present':'absent';
+  setPresence(savedPresence,true);
   buildStatPerso('all');buildStatClasse('all');buildStatRotation();
   setInterval(tickTimer,1000);tickTimer();
+}
+
+function buildPlayerSelect(){
+  var sel=document.getElementById('player-select-stats');
+  if(!sel)return;
+  sel.innerHTML='';
+  DB.forEach(function(p){
+    var opt=document.createElement('option');
+    opt.value=p.name;
+    opt.textContent=p.name+(p.name===me.name?' (moi)':'');
+    if(p.name===me.name)opt.selected=true;
+    sel.appendChild(opt);
+  });
+}
+
+function onPlayerSelectChange(){
+  var sel=document.getElementById('player-select-stats');
+  var name=sel.value;
+  for(var i=0;i<DB.length;i++){if(DB[i].name===name){selectedStatPlayer=DB[i];break;}}
+  buildStatPerso(currentPeriod);
 }
 
 function doChangePin(){
@@ -475,10 +477,22 @@ function setPresence(val,silent){
   if(val==='present'){
     if(inscrits.indexOf(me.name)===-1)inscrits.push(me.name);
     if(isWindowOpen()&&inscrits.length>10)applyRotation();
-    if(!silent)callSheet('register',{player:me.name,status:'present'});
+    if(!silent){
+      callSheet('register',{player:me.name,status:'present'}).then(function(res){
+        if(res&&res.inscrits)inscrits=res.inscrits;
+        updateListeZone();
+        // Notifier si groupe complet
+        if(inscrits.length===10)callSheet('notifyGroupeComplet',{});
+      });
+    }
   } else {
     inscrits=inscrits.filter(function(n){return n!==me.name;});
-    if(!silent)callSheet('register',{player:me.name,status:'absent'});
+    if(!silent){
+      callSheet('register',{player:me.name,status:'absent'}).then(function(res){
+        if(res&&res.inscrits)inscrits=res.inscrits;
+        updateListeZone();
+      });
+    }
   }
   updateBannerZone();updateListeZone();
 }
@@ -502,7 +516,7 @@ function updateListeZone(){
     el.innerHTML='<div class="locked-card"><i class="ti ti-lock" style="font-size:32px;color:var(--text-muted);"></i><div class="locked-text">Liste masquée jusqu\'à 12h vendredi<br><span style="font-size:12px;">'+inscrits.length+' joueur'+(inscrits.length>1?'s':'')+' inscrit'+(inscrits.length>1?'s':'')+'</span></div></div>';
     return;
   }
-  if(!inscrits.length){el.innerHTML='';return;}
+  if(!inscrits.length){el.innerHTML='<div class="locked-card"><div class="locked-text">Aucun joueur inscrit pour l\'instant.</div></div>';return;}
   var sorted=inscrits.slice().sort(function(a,b){var pa=0,pb=0;for(var i=0;i<DB.length;i++){if(DB[i].name===a)pa=DB[i].pts||0;if(DB[i].name===b)pb=DB[i].pts||0;}return pb-pa;});
   var html='<div class="section-label">Joueurs inscrits</div><div class="liste-card"><div class="liste-header"><span>Liste</span><span>'+inscrits.length+'/10</span></div>';
   sorted.forEach(function(name,i){var pts=0;for(var j=0;j<DB.length;j++){if(DB[j].name===name)pts=DB[j].pts||0;}var exclu=isWindowOpen()&&inscrits.length>10&&i<inscrits.length-10;html+='<div class="player-row"><div class="player-avatar">'+name.substring(0,2).toUpperCase()+'</div><span class="player-name">'+name+'</span><span style="font-size:12px;color:var(--text-muted);margin-right:6px;">'+pts+' pts</span>'+(exclu?'<span class="pill pill-red">Exclu</span>':'<span class="pill pill-green">OK</span>')+'</div>';});
@@ -519,12 +533,14 @@ function getFiltered(player,period){
 function buildStatPerso(period){
   currentPeriod=period;
   document.querySelectorAll('#period-perso .period-btn').forEach(function(b){var map={'1m':'1 mois','3m':'3 mois','6m':'6 mois','12m':'12 mois','all':'Tout'};b.classList.toggle('active',b.textContent===map[period]);});
-  if(!me)return;
-  var filtered=getFiltered(me,period);
+  var player=selectedStatPlayer||me;
+  if(!player)return;
+  var filtered=getFiltered(player,period);
   var played=filtered.filter(function(h){return h.result==='V'||h.result==='D';});
   var wins=played.filter(function(h){return h.result==='V';}).length;
   var matchs=played.length,pct=matchs?Math.round(wins/matchs*100):0;
   var total=filtered.length,presencePct=total?Math.round(played.length/total*100):0;
+  var isSelf=player.name===me.name;
   document.getElementById('perso-content').innerHTML=
     '<div class="stat-grid">'+
     '<div class="stat-card"><div class="stat-label">Matchs joués</div><div class="stat-val">'+matchs+'</div></div>'+
@@ -532,12 +548,7 @@ function buildStatPerso(period){
     '<div class="stat-card"><div class="stat-label">% Victoire</div><div class="stat-val">'+pct+'%</div></div>'+
     '<div class="stat-card"><div class="stat-label">Présence</div><div class="stat-val">'+presencePct+'%</div></div>'+
     '</div>'+
-    '<div class="section-label">Points de rotation</div>'+
-    '<div class="liste-card" style="padding:18px;text-align:center;">'+
-    '<div style="font-size:44px;font-weight:700;color:var(--gold);">'+(me.pts||0)+'</div>'+
-    '<div style="font-size:13px;color:var(--text-muted);">présences consécutives</div>'+
-    ((me.pts||0)>=5?'<div style="margin-top:10px;"><span class="pill pill-warn">⚠️ Risque exclusion vendredi</span></div>':'')+
-    '</div>';
+    (isSelf?'<div class="section-label">Points de rotation</div><div class="liste-card" style="padding:18px;text-align:center;"><div style="font-size:44px;font-weight:700;color:var(--gold);">'+(player.pts||0)+'</div><div style="font-size:13px;color:var(--text-muted);">présences consécutives</div>'+((player.pts||0)>=5?'<div style="margin-top:10px;"><span class="pill pill-warn">⚠️ Risque exclusion vendredi</span></div>':'')+'</div>':'');
 }
 
 function buildStatClasse(period){
@@ -585,8 +596,7 @@ function saveResults(){
 
 function cancelMatch(){
   if(!confirm('Confirmer l\'annulation du match ? Tous les joueurs seront notifiés.'))return;
-  var btn=document.getElementById('cancel-btn');
-  btn.textContent='Annulation...';btn.disabled=true;
+  var btn=document.getElementById('cancel-btn');btn.textContent='Annulation...';btn.disabled=true;
   callSheet('cancelMatch',{})
     .then(function(){alert('Match annulé. Notifications envoyées.');location.reload();})
     .catch(function(err){alert('Erreur: '+err.message);btn.textContent='❌ Annuler le match';btn.disabled=false;});
