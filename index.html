@@ -23,11 +23,20 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg-deep:#0a0a1a;--bg-card:#12122a;--bg-card2:#1a1a35;
-  --border:#2a2a50;--blue:#1e90ff;--blue-dark:#0066cc;
-  --silver:#c0c0d0;--silver-light:#e8e8f0;--gold:#d4af37;
-  --text:#e8e8f0;--text-muted:#8888aa;
-  --success:#00c853;--danger:#ff3b30;--warn:#ff9500;
+  --bg-deep:#0a0a1a;
+  --bg-card:#12122a;
+  --bg-card2:#1a1a35;
+  --border:#2a2a50;
+  --blue:#1e90ff;
+  --blue-dark:#0066cc;
+  --silver:#c0c0d0;
+  --silver-light:#e8e8f0;
+  --gold:#d4af37;
+  --text:#e8e8f0;
+  --text-muted:#8888aa;
+  --success:#00c853;
+  --danger:#ff3b30;
+  --warn:#ff9500;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-deep);color:var(--text);min-height:100vh;}
 .screen{display:none;flex-direction:column;min-height:100vh;}
@@ -37,7 +46,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .app-title{font-size:22px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--silver-light);margin-bottom:4px;}
 .app-sub{font-size:13px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;}
 .field-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
-input[type=tel],input[type=password],select{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:10px;font-size:16px;background:var(--bg-card);color:var(--text);outline:none;-webkit-appearance:none;appearance:none;}
+input[type=tel],input[type=password],select{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:10px;font-size:16px;background:var(--bg-card);color:var(--text);outline:none;-webkit-appearance:none;}
 input:focus,select:focus{border-color:var(--blue);}
 .btn-main{width:100%;padding:14px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:12px;}
 .btn-danger{width:100%;padding:13px;background:var(--danger);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
@@ -47,10 +56,7 @@ input:focus,select:focus{border-color:var(--blue);}
 .topbar-avatar{width:36px;height:36px;border-radius:50%;background:var(--blue-dark);border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
 .topbar-name{font-size:15px;font-weight:600;color:var(--silver-light);}
 .topbar-pts{font-size:12px;color:var(--text-muted);}
-.content{flex:1;padding:16px;max-width:500px;margin:0 auto;width:100%;padding-bottom:20px;}
-/* Pull to refresh */
-.ptr-indicator{text-align:center;padding:10px;font-size:13px;color:var(--text-muted);display:none;}
-.ptr-indicator.visible{display:block;}
+.content{flex:1;padding:16px;max-width:500px;margin:0 auto;width:100%;}
 .status-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;}
 .status-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:12px;}
 .status-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
@@ -107,8 +113,7 @@ input:focus,select:focus{border-color:var(--blue);}
 .tab-pills{display:flex;gap:6px;margin-bottom:14px;}
 .tab-pill{flex:1;padding:7px 4px;text-align:center;font-size:12px;font-weight:500;border:1px solid var(--border);border-radius:99px;cursor:pointer;color:var(--text-muted);background:none;}
 .tab-pill.active{background:var(--blue);color:#fff;border-color:var(--blue);}
-.player-select-wrap{margin-bottom:12px;position:relative;}
-.player-select-wrap::after{content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;}
+.player-select-wrap{margin-bottom:12px;}
 .admin-row{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);gap:8px;}
 .admin-row:last-child{border-bottom:none;}
 .rlabel{font-size:12px;font-weight:600;cursor:pointer;padding:5px 10px;border-radius:8px;border:1px solid var(--border);color:var(--text-muted);background:none;}
@@ -168,9 +173,7 @@ input:focus,select:focus{border-color:var(--blue);}
     </div>
     <button onclick="doLogout()" style="border:none;background:none;cursor:pointer;color:var(--text-muted);margin-left:auto;"><i class="ti ti-logout" style="font-size:20px;"></i></button>
   </div>
-
-  <div class="content" id="main-content">
-    <div class="ptr-indicator" id="ptr-indicator">↓ Relâche pour actualiser</div>
+  <div class="content">
 
     <div id="tab-inscription">
       <div class="status-card">
@@ -214,6 +217,7 @@ input:focus,select:focus{border-color:var(--blue);}
         <button class="tab-pill" id="pill-classe" onclick="switchStat('classe')">Présence</button>
         <button class="tab-pill" id="pill-rotation" onclick="switchStat('rotation')">Rotation</button>
       </div>
+
       <div id="stat-perso">
         <div class="player-select-wrap">
           <select id="player-select-stats" onchange="onPlayerSelectChange()"></select>
@@ -227,6 +231,7 @@ input:focus,select:focus{border-color:var(--blue);}
         </div>
         <div id="perso-content"></div>
       </div>
+
       <div id="stat-classe" style="display:none;">
         <div class="period-selector">
           <button class="period-btn" onclick="setPeriodClasse('1m')">1 mois</button>
@@ -237,6 +242,7 @@ input:focus,select:focus{border-color:var(--blue);}
         </div>
         <div class="liste-card" id="classe-list"></div>
       </div>
+
       <div id="stat-rotation" style="display:none;">
         <div class="banner banner-info"><i class="ti ti-info-circle"></i><span>Ven. 8h–12h : joueurs avec le plus de pts exclus si +10 inscrits.</span></div>
         <div class="liste-card" id="rotation-list"></div>
@@ -266,8 +272,8 @@ input:focus,select:focus{border-color:var(--blue);}
       <button class="btn-main" id="save-btn" onclick="saveResults()" style="margin-top:12px;">💾 Enregistrer dans Google Sheet</button>
       <button class="btn-danger" id="cancel-btn" onclick="cancelMatch()">❌ Annuler le match</button>
     </div>
-  </div>
 
+  </div>
   <nav class="bottom-nav">
     <button class="nav-item active" id="nav-ins" onclick="switchTab('inscription')"><i class="ti ti-calendar-event"></i>Match</button>
     <button class="nav-item" id="nav-sta" onclick="switchTab('stats')"><i class="ti ti-chart-bar"></i>Stats</button>
@@ -277,8 +283,6 @@ input:focus,select:focus{border-color:var(--blue);}
 </div>
 <script>
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbwj_aYlrhynvl-fhHkQFRBwG70sX8iLFLnY0eBVIga0KzYkjdH3DLITMHwmqeFJ3ipC/exec";
-var SESSION_KEY='calcetto_session';
-var SESSION_DURATION=30*24*60*60*1000; // 30 jours
 var DB=[],me=null,isAdmin=false,presence='absent',inscrits=[];
 var currentPeriod='all',currentPeriodClasse='all',currentTel='';
 var selectedStatPlayer=null;
@@ -290,87 +294,11 @@ function callSheet(action,params){
 }
 function normalize(t){return t.replace(/[\s\-\.]/g,'');}
 
-// ── SESSION PERSISTANTE ────────────────────────────────────
-function saveSession(name,tel,admin){
-  localStorage.setItem(SESSION_KEY,JSON.stringify({name:name,tel:tel,admin:admin,ts:Date.now()}));
-}
-function loadSession(){
-  try{
-    var s=JSON.parse(localStorage.getItem(SESSION_KEY));
-    if(s&&Date.now()-s.ts<SESSION_DURATION)return s;
-  }catch(e){}
-  return null;
-}
-function clearSession(){localStorage.removeItem(SESSION_KEY);}
-
-// ── PULL TO REFRESH ────────────────────────────────────────
-var ptrStartY=0,ptrActive=false;
-function initPullToRefresh(){
-  var content=document.getElementById('main-content');
-  var indicator=document.getElementById('ptr-indicator');
-  content.addEventListener('touchstart',function(e){
-    if(content.scrollTop===0)ptrStartY=e.touches[0].clientY;
-  },{passive:true});
-  content.addEventListener('touchmove',function(e){
-    var dy=e.touches[0].clientY-ptrStartY;
-    if(dy>60&&content.scrollTop===0){ptrActive=true;indicator.classList.add('visible');indicator.textContent='↑ Relâche pour actualiser';}
-  },{passive:true});
-  content.addEventListener('touchend',function(){
-    if(ptrActive){ptrActive=false;indicator.classList.remove('visible');refreshData();}
-  });
-}
-
-function refreshData(){
-  if(!me)return;
-  var indicator=document.getElementById('ptr-indicator');
-  indicator.textContent='🔄 Actualisation...';indicator.classList.add('visible');
-  callSheet('getData').then(function(dataRes){
-    DB=dataRes.players||[];
-    inscrits=dataRes.inscrits||[];
-    var joueur=null;
-    for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===me.name.toLowerCase()){joueur=DB[i];break;}}
-    if(joueur)me=joueur;
-    selectedStatPlayer=me;
-    buildPlayerSelect();
-    // Restaurer présence
-    var p=inscrits.indexOf(me.name)!==-1?'present':'absent';
-    setPresence(p,true);
-    buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();
-    updateListeZone();updateBannerZone();tickTimer();
-    indicator.classList.remove('visible');
-  }).catch(function(){indicator.classList.remove('visible');});
-}
-
-// ── INIT ───────────────────────────────────────────────────
 window.addEventListener('load',function(){
-  initPullToRefresh();
-  var session=loadSession();
-  if(session){
-    // Auto-login depuis session sauvegardée
-    document.getElementById('loading-overlay').style.display='flex';
-    callSheet('getData').then(function(dataRes){
-      DB=dataRes.players||[];
-      inscrits=dataRes.inscrits||[];
-      var joueur=null;
-      for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===session.name.toLowerCase()){joueur=DB[i];break;}}
-      me=joueur||{name:session.name,pts:0,history:[]};
-      isAdmin=session.admin;
-      currentTel=session.tel;
-      selectedStatPlayer=me;
-      document.getElementById('loading-overlay').style.display='none';
-      enterApp();
-    }).catch(function(){
-      document.getElementById('loading-overlay').style.display='none';
-      clearSession();
-      document.getElementById('tel-input').value='';
-    });
-  } else {
-    var saved=localStorage.getItem('calcetto_tel');
-    if(saved)document.getElementById('tel-input').value=saved;
-  }
+  var saved=localStorage.getItem('calcetto_tel');
+  if(saved)document.getElementById('tel-input').value=saved;
 });
 
-// ── LOGIN ──────────────────────────────────────────────────
 function goToPin(){
   var tel=document.getElementById('tel-input').value.trim();
   if(!tel){document.getElementById('tel-error').style.display='block';return;}
@@ -403,7 +331,6 @@ function doLogin(){
       var nomJoueur=loginRes.name.trim();
       isAdmin=loginRes.isAdmin;
       localStorage.setItem('calcetto_tel',currentTel);
-      saveSession(nomJoueur,currentTel,isAdmin);
       return callSheet('getData').then(function(dataRes){
         DB=dataRes.players||[];
         inscrits=dataRes.inscrits||[];
@@ -424,7 +351,6 @@ function doLogin(){
 
 function doLogout(){
   me=null;isAdmin=false;presence='absent';inscrits=[];currentTel='';selectedStatPlayer=null;
-  clearSession();
   document.getElementById('s-main').classList.remove('active');
   document.getElementById('s-login').classList.add('active');
   document.getElementById('step-pin').style.display='none';
@@ -449,31 +375,32 @@ function enterApp(){
     buildAdminList();
     document.getElementById('cancel-match-zone').innerHTML='<button class="btn-danger" onclick="cancelMatch()" style="width:100%;margin-bottom:10px;">❌ Annuler le match de jeudi</button>';
   }
+  // Initialiser le sélecteur de joueur dans les stats
   buildPlayerSelect();
+  // Restaurer présence depuis le sheet
   var savedPresence=inscrits.indexOf(me.name)!==-1?'present':'absent';
   setPresence(savedPresence,true);
   buildStatPerso('all');buildStatClasse('all');buildStatRotation();
-  setInterval(tickTimer,5000);tickTimer();
+  setInterval(tickTimer,1000);tickTimer();
 }
 
 function buildPlayerSelect(){
   var sel=document.getElementById('player-select-stats');
   if(!sel)return;
-  var current=sel.value||me.name;
   sel.innerHTML='';
   DB.forEach(function(p){
     var opt=document.createElement('option');
     opt.value=p.name;
     opt.textContent=p.name+(p.name===me.name?' (moi)':'');
-    if(p.name===current)opt.selected=true;
+    if(p.name===me.name)opt.selected=true;
     sel.appendChild(opt);
   });
-  for(var i=0;i<DB.length;i++){if(DB[i].name===current){selectedStatPlayer=DB[i];break;}}
 }
 
 function onPlayerSelectChange(){
   var sel=document.getElementById('player-select-stats');
-  for(var i=0;i<DB.length;i++){if(DB[i].name===sel.value){selectedStatPlayer=DB[i];break;}}
+  var name=sel.value;
+  for(var i=0;i<DB.length;i++){if(DB[i].name===name){selectedStatPlayer=DB[i];break;}}
   buildStatPerso(currentPeriod);
 }
 
@@ -481,7 +408,8 @@ function doChangePin(){
   var oldPin=document.getElementById('old-pin').value.trim();
   var newPin=document.getElementById('new-pin').value.trim();
   var confirmPin=document.getElementById('confirm-pin').value.trim();
-  var errEl=document.getElementById('pin-change-error'),okEl=document.getElementById('pin-change-success');
+  var errEl=document.getElementById('pin-change-error');
+  var okEl=document.getElementById('pin-change-success');
   errEl.style.display='none';okEl.style.display='none';
   if(!oldPin||!newPin||!confirmPin){errEl.textContent='Remplis tous les champs.';errEl.style.display='block';return;}
   if(newPin!==confirmPin){errEl.textContent='Les PIN ne correspondent pas.';errEl.style.display='block';return;}
@@ -494,22 +422,34 @@ function doChangePin(){
     .catch(function(){errEl.textContent='Erreur serveur.';errEl.style.display='block';});
 }
 
-// ── PHASES ─────────────────────────────────────────────────
 function getCurrentPhase(){
   var now=new Date(),day=now.getDay(),h=now.getHours()+now.getMinutes()/60;
   if(day===4){return h<12?'open_classic':'closed';}
   else if(day===5){if(h<8)return 'closed';else if(h<12)return 'open_rotation';else return 'open_classic';}
   return 'open_classic';
 }
-function getNextThursday(){var now=new Date(),day=now.getDay();var diff=(4-day+7)%7;if(diff===0)diff=7;var d=new Date(now);d.setDate(now.getDate()+diff);d.setHours(21,0,0,0);return d;}
-function getLastThursday(){var now=new Date(),day=now.getDay();var daysAgo=(day-4+7)%7;var d=new Date(now);d.setDate(now.getDate()-daysAgo);d.setHours(21,0,0,0);return d;}
+
+function getNextThursday(){
+  var now=new Date(),day=now.getDay();
+  var diff=(4-day+7)%7;if(diff===0)diff=7;
+  var d=new Date(now);d.setDate(now.getDate()+diff);d.setHours(21,0,0,0);return d;
+}
+
+function getLastThursday(){
+  var now=new Date(),day=now.getDay();
+  var daysAgo=(day-4+7)%7;
+  var d=new Date(now);d.setDate(now.getDate()-daysAgo);d.setHours(21,0,0,0);return d;
+}
+
+function getNextThursday12h(){var thu=getNextThursday();thu.setHours(12,0,0,0);return thu;}
+function getNextFriday8h(){var now=new Date(),day=now.getDay();var d=(5-day+7)%7;if(d===0&&now.getHours()>=8)d=7;var fri=new Date(now);fri.setDate(now.getDate()+d);fri.setHours(8,0,0,0);return fri;}
 function isWindowOpen(){return getCurrentPhase()==='open_rotation';}
 function isAfter12(){return getCurrentPhase()!=='closed';}
 
-// ── TIMER ──────────────────────────────────────────────────
 function tickTimer(){
   var phase=getCurrentPhase();
-  var bRot=document.getElementById('badge-rotation'),bLib=document.getElementById('badge-libre');
+  var bRot=document.getElementById('badge-rotation');
+  var bLib=document.getElementById('badge-libre');
   if(!bRot||!bLib)return;
   if(phase==='open_rotation'){
     bRot.textContent='Ouvert';bRot.className='badge-open';
@@ -521,31 +461,14 @@ function tickTimer(){
     bRot.textContent='Fermé';bRot.className='badge-closed';
     bLib.textContent='Fermé';bLib.className='badge-closed';
   }
-  updateBoutons();
   updateListeZone();
-}
-
-function updateBoutons(){
-  var phase=getCurrentPhase();
+  var ferme=!isAdmin&&phase==='closed';
   var btnP=document.getElementById('btn-present'),btnA=document.getElementById('btn-absent');
-  if(!btnP||!btnA)return;
-  // Fermé si phase closed
-  var phaseFermee=!isAdmin&&phase==='closed';
-  // Complet si inscription classique et 10 joueurs et pas inscrit
-  var groupeComplet=!isAdmin&&phase==='open_classic'&&inscrits.length>=10&&inscrits.indexOf(me?me.name:'')===−1;
-  btnP.disabled=phaseFermee||groupeComplet;
-  btnA.disabled=phaseFermee;
+  if(btnP&&btnA){btnP.disabled=ferme;btnA.disabled=ferme;}
 }
 
-// ── PRÉSENCE ───────────────────────────────────────────────
 function setPresence(val,silent){
-  if(!silent&&!isAdmin){
-    var phase=getCurrentPhase();
-    if(phase==='closed'){alert("Les inscriptions sont fermées jusqu'à vendredi 8h00.");return;}
-    if(phase==='open_classic'&&val==='present'&&inscrits.length>=10&&inscrits.indexOf(me.name)===-1){
-      alert("Le groupe est complet (10/10). Tu ne peux plus t'inscrire.");return;
-    }
-  }
+  if(!silent&&!isAdmin){if(getCurrentPhase()==='closed'){alert("Les inscriptions sont fermées jusqu'à vendredi 8h00.");return;}}
   presence=val;
   if(!silent)localStorage.setItem('calcetto_presence_'+(me?me.name:''),val);
   document.getElementById('btn-present').classList.toggle('selected',val==='present');
@@ -556,20 +479,22 @@ function setPresence(val,silent){
     if(isWindowOpen()&&inscrits.length>10)applyRotation();
     if(!silent){
       callSheet('register',{player:me.name,status:'present'}).then(function(res){
-        if(res&&res.inscrits){inscrits=res.inscrits;}
-        updateListeZone();updateBoutons();
+        if(res&&res.inscrits)inscrits=res.inscrits;
+        updateListeZone();
+        // Notifier si groupe complet
+        if(inscrits.length===10)callSheet('notifyGroupeComplet',{});
       });
     }
   } else {
     inscrits=inscrits.filter(function(n){return n!==me.name;});
     if(!silent){
       callSheet('register',{player:me.name,status:'absent'}).then(function(res){
-        if(res&&res.inscrits){inscrits=res.inscrits;}
-        updateListeZone();updateBoutons();
+        if(res&&res.inscrits)inscrits=res.inscrits;
+        updateListeZone();
       });
     }
   }
-  updateBannerZone();updateListeZone();updateBoutons();
+  updateBannerZone();updateListeZone();
 }
 
 function applyRotation(){
@@ -579,13 +504,10 @@ function applyRotation(){
 
 function updateBannerZone(){
   var el=document.getElementById('banner-zone');if(!el||!me)return;
-  var phase=getCurrentPhase();
   if(presence==='present'){
     if(isWindowOpen()&&(me.pts||0)>=5)el.innerHTML='<div class="banner banner-warn"><i class="ti ti-alert-triangle"></i><span>Tu as '+me.pts+' pts — risque d\'exclusion si +10 joueurs avant 12h.</span></div>';
     else el.innerHTML='<div class="banner banner-success"><i class="ti ti-circle-check"></i><span>Tu es inscrit pour jeudi !</span></div>';
-  } else if(phase==='open_classic'&&inscrits.length>=10){
-    el.innerHTML='<div class="banner banner-warn"><i class="ti ti-lock"></i><span>Groupe complet (10/10). Plus de place disponible.</span></div>';
-  } else el.innerHTML='';
+  }else el.innerHTML='';
 }
 
 function updateListeZone(){
@@ -597,11 +519,10 @@ function updateListeZone(){
   if(!inscrits.length){el.innerHTML='<div class="locked-card"><div class="locked-text">Aucun joueur inscrit pour l\'instant.</div></div>';return;}
   var sorted=inscrits.slice().sort(function(a,b){var pa=0,pb=0;for(var i=0;i<DB.length;i++){if(DB[i].name===a)pa=DB[i].pts||0;if(DB[i].name===b)pb=DB[i].pts||0;}return pb-pa;});
   var html='<div class="section-label">Joueurs inscrits</div><div class="liste-card"><div class="liste-header"><span>Liste</span><span>'+inscrits.length+'/10</span></div>';
-  sorted.forEach(function(name,i){var pts=0;for(var j=0;j<DB.length;j++){if(DB[j].name===name)pts=DB[j].pts||0;}var exclu=isWindowOpen()&&inscrits.length>10&&i<inscrits.length-10;var isMe=name===me.name;html+='<div class="player-row"><div class="player-avatar" style="'+(isMe?'border:2px solid var(--blue);':'')+'">'+name.substring(0,2).toUpperCase()+'</div><span class="player-name">'+name+(isMe?' <span style="font-size:11px;color:var(--text-muted);">(moi)</span>':'')+'</span><span style="font-size:12px;color:var(--text-muted);margin-right:6px;">'+pts+' pts</span>'+(exclu?'<span class="pill pill-red">Exclu</span>':'<span class="pill pill-green">OK</span>')+'</div>';});
+  sorted.forEach(function(name,i){var pts=0;for(var j=0;j<DB.length;j++){if(DB[j].name===name)pts=DB[j].pts||0;}var exclu=isWindowOpen()&&inscrits.length>10&&i<inscrits.length-10;html+='<div class="player-row"><div class="player-avatar">'+name.substring(0,2).toUpperCase()+'</div><span class="player-name">'+name+'</span><span style="font-size:12px;color:var(--text-muted);margin-right:6px;">'+pts+' pts</span>'+(exclu?'<span class="pill pill-red">Exclu</span>':'<span class="pill pill-green">OK</span>')+'</div>';});
   el.innerHTML=html+'</div>';
 }
 
-// ── STATS ──────────────────────────────────────────────────
 function getFiltered(player,period){
   if(period==='all')return(player.history||[]);
   var now=new Date(),months={'1m':1,'3m':3,'6m':6,'12m':12};
@@ -612,7 +533,8 @@ function getFiltered(player,period){
 function buildStatPerso(period){
   currentPeriod=period;
   document.querySelectorAll('#period-perso .period-btn').forEach(function(b){var map={'1m':'1 mois','3m':'3 mois','6m':'6 mois','12m':'12 mois','all':'Tout'};b.classList.toggle('active',b.textContent===map[period]);});
-  var player=selectedStatPlayer||me;if(!player)return;
+  var player=selectedStatPlayer||me;
+  if(!player)return;
   var filtered=getFiltered(player,period);
   var played=filtered.filter(function(h){return h.result==='V'||h.result==='D';});
   var wins=played.filter(function(h){return h.result==='V';}).length;
@@ -626,12 +548,7 @@ function buildStatPerso(period){
     '<div class="stat-card"><div class="stat-label">% Victoire</div><div class="stat-val">'+pct+'%</div></div>'+
     '<div class="stat-card"><div class="stat-label">Présence</div><div class="stat-val">'+presencePct+'%</div></div>'+
     '</div>'+
-    '<div class="section-label">Points de rotation</div>'+
-    '<div class="liste-card" style="padding:18px;text-align:center;">'+
-    '<div style="font-size:44px;font-weight:700;color:var(--gold);">'+(player.pts||0)+'</div>'+
-    '<div style="font-size:13px;color:var(--text-muted);">présences consécutives</div>'+
-    ((player.pts||0)>=5?'<div style="margin-top:10px;"><span class="pill pill-warn">⚠️ Risque exclusion vendredi</span></div>':'')+
-    '</div>';
+    (isSelf?'<div class="section-label">Points de rotation</div><div class="liste-card" style="padding:18px;text-align:center;"><div style="font-size:44px;font-weight:700;color:var(--gold);">'+(player.pts||0)+'</div><div style="font-size:13px;color:var(--text-muted);">présences consécutives</div>'+((player.pts||0)>=5?'<div style="margin-top:10px;"><span class="pill pill-warn">⚠️ Risque exclusion vendredi</span></div>':'')+'</div>':'');
 }
 
 function buildStatClasse(period){
@@ -653,13 +570,20 @@ function switchTab(tab){
   ['inscription','stats','profil','admin'].forEach(function(t){document.getElementById('tab-'+t).style.display=t===tab?'block':'none';var n=document.getElementById('nav-'+t.substring(0,3));if(n)n.classList.toggle('active',t===tab);});
   if(tab==='stats'){buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();}
 }
-function switchStat(s){['perso','classe','rotation'].forEach(function(t){document.getElementById('stat-'+t).style.display=t===s?'block':'none';document.getElementById('pill-'+t).classList.toggle('active',t===s);});}
 
-// ── ADMIN ──────────────────────────────────────────────────
+function switchStat(s){
+  ['perso','classe','rotation'].forEach(function(t){document.getElementById('stat-'+t).style.display=t===s?'block':'none';document.getElementById('pill-'+t).classList.toggle('active',t===s);});
+}
+
 function buildAdminList(){
   document.getElementById('admin-list').innerHTML=DB.map(function(p){return'<div class="admin-row"><span style="flex:1;font-size:14px;color:var(--silver-light);">'+p.name+'</span><div style="display:flex;gap:5px;"><button class="rlabel sel-abs" id="la-'+p.name+'" onclick="selRes(\''+p.name+'\',\'\')">—</button><button class="rlabel" id="lv-'+p.name+'" onclick="selRes(\''+p.name+'\',\'V\')">V</button><button class="rlabel" id="ld-'+p.name+'" onclick="selRes(\''+p.name+'\',\'D\')">D</button></div></div>';}).join('');
 }
-function selRes(name,val){document.getElementById('la-'+name).className='rlabel'+(val===''?' sel-abs':'');document.getElementById('lv-'+name).className='rlabel'+(val==='V'?' sel-v':'');document.getElementById('ld-'+name).className='rlabel'+(val==='D'?' sel-d':'');}
+
+function selRes(name,val){
+  document.getElementById('la-'+name).className='rlabel'+(val===''?' sel-abs':'');
+  document.getElementById('lv-'+name).className='rlabel'+(val==='V'?' sel-v':'');
+  document.getElementById('ld-'+name).className='rlabel'+(val==='D'?' sel-d':'');
+}
 
 function saveResults(){
   var results={};
