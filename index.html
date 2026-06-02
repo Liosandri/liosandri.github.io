@@ -532,7 +532,7 @@ function updateBoutons(){
   // Fermé si phase closed
   var phaseFermee=!isAdmin&&phase==='closed';
   // Complet si inscription classique et 10 joueurs et pas inscrit
-  var groupeComplet=!isAdmin&&phase==='open_classic'&&inscrits.length>=10&&inscrits.indexOf(me?me.name:'')===−1;
+  var groupeComplet=!isAdmin&&phase==='open_classic'&&inscrits.length>=10&&inscrits.indexOf(me?me.name:'')===-1;
   btnP.disabled=phaseFermee||groupeComplet;
   btnA.disabled=phaseFermee;
 }
