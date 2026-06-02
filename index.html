@@ -282,6 +282,7 @@ var SESSION_DURATION=30*24*60*60*1000; // 30 jours
 var DB=[],me=null,isAdmin=false,presence='absent',inscrits=[];
 var currentPeriod='all',currentPeriodClasse='all',currentTel='';
 var selectedStatPlayer=null;
+var matchAnnule=false;
 
 function callSheet(action,params){
   var url=SCRIPT_URL+'?action='+encodeURIComponent(action);
@@ -327,6 +328,7 @@ function refreshData(){
   callSheet('getData').then(function(dataRes){
     DB=dataRes.players||[];
     inscrits=dataRes.inscrits||[];
+    matchAnnule=dataRes.matchAnnule||false;
     var joueur=null;
     for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===me.name.toLowerCase()){joueur=DB[i];break;}}
     if(joueur)me=joueur;
@@ -351,6 +353,7 @@ window.addEventListener('load',function(){
     callSheet('getData').then(function(dataRes){
       DB=dataRes.players||[];
       inscrits=dataRes.inscrits||[];
+      matchAnnule=dataRes.matchAnnule||false;
       var joueur=null;
       for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===session.name.toLowerCase()){joueur=DB[i];break;}}
       me=joueur||{name:session.name,pts:0,history:[]};
@@ -407,6 +410,7 @@ function doLogin(){
       return callSheet('getData').then(function(dataRes){
         DB=dataRes.players||[];
         inscrits=dataRes.inscrits||[];
+        matchAnnule=dataRes.matchAnnule||false;
         var joueur=null;
         for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===nomJoueur.toLowerCase()){joueur=DB[i];break;}}
         me=joueur||{name:nomJoueur,pts:0,history:[]};
@@ -447,7 +451,11 @@ function enterApp(){
   if(isAdmin&&me.name==='Lionel'){
     document.getElementById('nav-adm').style.display='flex';
     buildAdminList();
-    document.getElementById('cancel-match-zone').innerHTML='<button class="btn-danger" onclick="cancelMatch()" style="width:100%;margin-bottom:10px;">❌ Annuler le match de jeudi</button>';
+    if(!matchAnnule){
+      document.getElementById('cancel-match-zone').innerHTML='<button class="btn-danger" onclick="cancelMatch()" style="width:100%;margin-bottom:10px;">❌ Annuler le match de jeudi</button>';
+    } else {
+      document.getElementById('cancel-match-zone').innerHTML='<div class="banner banner-warn" style="margin-bottom:10px;"><i class="ti ti-x"></i><span>Match annulé — les inscriptions sont bloquées.</span></div>';
+    }
   }
   buildPlayerSelect();
   var savedPresence=inscrits.indexOf(me.name)!==-1?'present':'absent';
@@ -529,6 +537,8 @@ function updateBoutons(){
   var phase=getCurrentPhase();
   var btnP=document.getElementById('btn-present'),btnA=document.getElementById('btn-absent');
   if(!btnP||!btnA)return;
+  // Bloqué si match annulé (sauf admin)
+  if(matchAnnule&&!isAdmin){btnP.disabled=true;btnA.disabled=true;return;}
   // Fermé si phase closed
   var phaseFermee=!isAdmin&&phase==='closed';
   // Complet si inscription classique et 10 joueurs et pas inscrit
@@ -540,6 +550,7 @@ function updateBoutons(){
 // ── PRÉSENCE ───────────────────────────────────────────────
 function setPresence(val,silent){
   if(!silent&&!isAdmin){
+    if(matchAnnule){alert("Le match de jeudi est annulé. Les inscriptions sont fermées.");return;}
     var phase=getCurrentPhase();
     if(phase==='closed'){alert("Les inscriptions sont fermées jusqu'à vendredi 8h00.");return;}
     if(phase==='open_classic'&&val==='present'&&inscrits.length>=10&&inscrits.indexOf(me.name)===-1){
@@ -579,6 +590,10 @@ function applyRotation(){
 
 function updateBannerZone(){
   var el=document.getElementById('banner-zone');if(!el||!me)return;
+  if(matchAnnule){
+    el.innerHTML='<div class="banner banner-warn"><i class="ti ti-x"></i><span>❌ Le match de jeudi est annulé. Les inscriptions sont fermées jusqu\'au prochain match.</span></div>';
+    return;
+  }
   var phase=getCurrentPhase();
   if(presence==='present'){
     if(isWindowOpen()&&(me.pts||0)>=5)el.innerHTML='<div class="banner banner-warn"><i class="ti ti-alert-triangle"></i><span>Tu as '+me.pts+' pts — risque d\'exclusion si +10 joueurs avant 12h.</span></div>';
@@ -674,7 +689,15 @@ function cancelMatch(){
   if(!confirm('Confirmer l\'annulation du match ? Tous les joueurs seront notifiés.'))return;
   var btn=document.getElementById('cancel-btn');btn.textContent='Annulation...';btn.disabled=true;
   callSheet('cancelMatch',{})
-    .then(function(){alert('Match annulé. Notifications envoyées.');location.reload();})
+    .then(function(){
+      matchAnnule=true;
+      alert('Match annulé. Notifications envoyées.');
+      // Mettre à jour l'UI sans reload complet
+      document.getElementById('cancel-match-zone').innerHTML='<div class="banner banner-warn" style="margin-bottom:10px;"><i class="ti ti-x"></i><span>Match annulé — les inscriptions sont bloquées.</span></div>';
+      inscrits=[];
+      updateBannerZone();updateListeZone();updateBoutons();
+      if(btn)btn.disabled=false;
+    })
     .catch(function(err){alert('Erreur: '+err.message);btn.textContent='❌ Annuler le match';btn.disabled=false;});
 }
 </script>
