@@ -212,6 +212,7 @@ input:focus,select:focus{border-color:var(--blue);}
 .mvp-cand .cvlbl{font-size:10px;color:var(--text-muted);}
 .mvp-winner-card{background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(212,175,55,0.04));border:2px solid var(--gold);border-radius:14px;padding:20px;text-align:center;margin-bottom:12px;}
 .mvp-winner-name{font-size:28px;font-weight:800;color:var(--gold);margin:8px 0 4px;}
+#onesignal-bell-container { display:none !important; }
 </style>
 </head>
 <body>
@@ -256,7 +257,8 @@ input:focus,select:focus{border-color:var(--blue);}
       <div class="topbar-name" id="top-name">—</div>
       <div class="topbar-pts" id="top-pts">—</div>
     </div>
-    <button onclick="doLogout()" style="border:none;background:none;cursor:pointer;color:var(--text-muted);margin-left:auto;"><i class="ti ti-logout" style="font-size:20px;"></i></button>
+    <button id="notif-btn" onclick="toggleNotif()" style="border:none;background:none;cursor:pointer;color:var(--text-muted);margin:0 8px;"><i class="ti ti-bell" style="font-size:20px;"></i></button>
+<button onclick="doLogout()" style="border:none;background:none;cursor:pointer;color:var(--text-muted);"><i class="ti ti-logout" style="font-size:20px;"></i></button>
   </div>
 
   <div class="content" id="main-content">
@@ -419,6 +421,15 @@ function initPullToRefresh(){
   },{passive:true});
   content.addEventListener('touchend',function(){
     if(ptrActive){ptrActive=false;indicator.classList.remove('visible');refreshData();}
+  });
+}
+
+function toggleNotif(){
+  OneSignalDeferred.push(function(OneSignal){
+    OneSignal.Notifications.requestPermission().then(function(){
+      var btn=document.getElementById('notif-btn');
+      if(btn)btn.querySelector('i').style.color='var(--blue)';
+    });
   });
 }
 
