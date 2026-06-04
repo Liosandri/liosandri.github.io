@@ -124,28 +124,48 @@ input:focus,select:focus{border-color:var(--blue);}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ── FIFA CARD ── */
-.fifa-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:12px;}
-.fifa-card-header{display:flex;align-items:center;gap:12px;padding:12px 14px 10px;background:linear-gradient(90deg,rgba(30,144,255,0.08),transparent);border-bottom:1px solid var(--border);}
-.fifa-ovr{width:46px;height:46px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden;}
-.fifa-ovr::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.18),transparent);}
-.fifa-ovr-num{font-size:20px;font-weight:800;line-height:1;}
-.fifa-ovr-lbl{font-size:8px;opacity:.7;text-transform:uppercase;letter-spacing:1px;}
-.ovr-elite{background:linear-gradient(135deg,#b8860b,#d4af37);color:#0a0a1a;}
-.ovr-good{background:linear-gradient(135deg,#006830,#00c853);color:#fff;}
-.ovr-avg{background:linear-gradient(135deg,#004e8c,#1e90ff);color:#fff;}
-.ovr-low{background:linear-gradient(135deg,#444,#666);color:#ccc;}
-.fifa-player-name{font-size:16px;font-weight:700;color:var(--silver-light);}
-.fifa-player-sub{font-size:11px;color:var(--text-muted);margin-top:2px;}
-.fifa-stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:10px 14px 12px;}
+.fifa-card{
+  border-radius:14px;overflow:hidden;margin-top:12px;
+  background:linear-gradient(145deg,#c8a415 0%,#f5d96b 30%,#e8c040 55%,#b8880e 80%,#d4a820 100%);
+  box-shadow:0 4px 24px rgba(212,175,55,0.35),0 1px 0 rgba(255,255,255,0.3) inset;
+  position:relative;
+}
+.fifa-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.18) 0%,transparent 50%,rgba(0,0,0,0.12) 100%);
+  pointer-events:none;
+}
+.fifa-card-header{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 16px 12px;
+  border-bottom:1px solid rgba(0,0,0,0.15);
+  position:relative;z-index:1;
+}
+.fifa-ovr{
+  width:52px;height:52px;border-radius:10px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex-shrink:0;position:relative;overflow:hidden;
+  background:linear-gradient(145deg,#e8e8f0 0%,#c8c8d8 40%,#f0f0f8 70%,#a0a0b8 100%);
+  box-shadow:0 2px 8px rgba(0,0,0,0.3),0 1px 0 rgba(255,255,255,0.8) inset;
+}
+.fifa-ovr::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.5),transparent 60%);}
+.fifa-ovr-num{font-size:22px;font-weight:900;line-height:1;color:#1a1a2e;position:relative;z-index:1;}
+.fifa-ovr-lbl{font-size:8px;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:1px;position:relative;z-index:1;}
+.fifa-player-info{flex:1;min-width:0;}
+.fifa-player-name{font-size:20px;font-weight:800;color:#1a1a2e;letter-spacing:.3px;line-height:1.1;}
+.fifa-stats-row{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:8px;
+  padding:10px 16px 14px;position:relative;z-index:1;
+}
 .fifa-stat{text-align:center;}
-.fifa-stat-val{font-size:17px;font-weight:700;line-height:1;}
-.fifa-stat-lbl{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
-.fifa-stat-bar{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:3px;overflow:hidden;}
-.fifa-stat-bar-fill{height:100%;border-radius:2px;}
-.fv-elite .fifa-stat-val{color:#d4af37;} .fv-elite .fifa-stat-bar-fill{background:#d4af37;}
-.fv-good .fifa-stat-val{color:#00c853;} .fv-good .fifa-stat-bar-fill{background:#00c853;}
-.fv-avg .fifa-stat-val{color:var(--blue);} .fv-avg .fifa-stat-bar-fill{background:var(--blue);}
-.fv-low .fifa-stat-val{color:var(--text-muted);} .fv-low .fifa-stat-bar-fill{background:var(--text-muted);}
+.fifa-stat-val{font-size:19px;font-weight:800;line-height:1;color:#1a1a2e;}
+.fifa-stat-lbl{font-size:9px;font-weight:700;color:rgba(0,0,0,0.5);text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
+.fifa-stat-bar{height:3px;background:rgba(0,0,0,0.15);border-radius:2px;margin-top:4px;overflow:hidden;}
+.fifa-stat-bar-fill{height:100%;border-radius:2px;background:rgba(0,0,0,0.4);}
+.fv-elite .fifa-stat-val{color:#5a0000;} .fv-elite .fifa-stat-bar-fill{background:#8b0000;}
+.fv-good .fifa-stat-val{color:#1a3a1a;} .fv-good .fifa-stat-bar-fill{background:#1a5a1a;}
+.fv-avg .fifa-stat-val{color:#1a1a2e;} .fv-avg .fifa-stat-bar-fill{background:#2a2a6e;}
+.fv-low .fifa-stat-val{color:#3a3a2a;} .fv-low .fifa-stat-bar-fill{background:#5a5a4a;}
 
 /* ── PITCH / TEAMS ── */
 .pitch-wrap{border-radius:12px;overflow:hidden;background:#1a3a1a;position:relative;padding:14px 10px;min-height:380px;}
@@ -810,10 +830,12 @@ function updateTabVisibility(){
 // ── FIFA CARD ──────────────────────────────────────────────
 function buildFifaCard(player){
   if(!player)return'';
-  // Try to find fifaStats from server data (stored globally as fifaStatsAll)
   var s=fifaStatsAll&&fifaStatsAll[player.name]?fifaStatsAll[player.name]:{atk:50,def:50,pss:50,sta:50,kep:50};
   var overall=s.overall||Math.round((s.atk+s.def+s.pss+s.sta+s.kep)/5);
-  var ovrCls=overall>=80?'ovr-elite':overall>=70?'ovr-good':overall>=60?'ovr-avg':'ovr-low';
+  // Stars 1-5 based on overall
+  var stars=overall>=90?5:overall>=78?4:overall>=66?3:overall>=54?2:1;
+  var starsHtml='';
+  for(var i=0;i<5;i++){starsHtml+='<span style="color:'+(i<stars?'#8b0000':'rgba(0,0,0,0.2')+'">★</span>';}
   var defs=[{k:'atk',l:'ATK'},{k:'def',l:'DEF'},{k:'pss',l:'PSS'},{k:'sta',l:'STA'},{k:'kep',l:'KEP'}];
   var statsHtml=defs.map(function(d){
     var v=s[d.k]||50;
@@ -823,8 +845,10 @@ function buildFifaCard(player){
   return'<div class="section-label">Profil FIFA</div>'+
     '<div class="fifa-card">'+
     '<div class="fifa-card-header">'+
-    '<div class="fifa-ovr '+ovrCls+'"><span class="fifa-ovr-num">'+overall+'</span><span class="fifa-ovr-lbl">OVR</span></div>'+
-    '<div><div class="fifa-player-name">'+player.name+'</div><div class="fifa-player-sub">Overall · '+overall+'/100</div></div>'+
+    '<div class="fifa-ovr"><span class="fifa-ovr-num">'+overall+'</span><span class="fifa-ovr-lbl">OVR</span></div>'+
+    '<div class="fifa-player-info">'+
+    '<div class="fifa-player-name">'+player.name+' <span style="font-size:18px;letter-spacing:2px;">'+starsHtml+'</span></div>'+
+    '</div>'+
     '</div>'+
     '<div class="fifa-stats-row">'+statsHtml+'</div>'+
     '</div>';
