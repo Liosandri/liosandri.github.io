@@ -440,7 +440,16 @@ function refreshData(){
     buildPlayerSelect();
     updateTabVisibility();
     // Restaurer présence
-    var p=inscrits.indexOf(me.name)!==-1?'present':'absent';
+    var phaseNow=getCurrentPhase();
+    var wasInscrit=inscrits.indexOf(me.name)!==-1;
+    var savedLocal=localStorage.getItem('calcetto_presence_'+(me?me.name:''));
+    var p;
+    if(phaseNow==='open_rotation'&&savedLocal==='present'){
+      // Garder le bouton présent pendant la phase rotation (suspens)
+      p='present';
+    } else {
+      p=wasInscrit?'present':'absent';
+    }
     setPresence(p,true);
     buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();
     updateListeZone();updateBannerZone();tickTimer();
@@ -570,7 +579,15 @@ function enterApp(){
   }
   buildPlayerSelect();
   updateTabVisibility();
-  var savedPresence=inscrits.indexOf(me.name)!==-1?'present':'absent';
+  var phaseInit=getCurrentPhase();
+  var wasInscritInit=inscrits.indexOf(me.name)!==-1;
+  var savedLocalInit=localStorage.getItem('calcetto_presence_'+(me?me.name:''));
+  var savedPresence;
+  if(phaseInit==='open_rotation'&&savedLocalInit==='present'){
+    savedPresence='present';
+  } else {
+    savedPresence=wasInscritInit?'present':'absent';
+  }
   setPresence(savedPresence,true);
   buildStatPerso('all');buildStatClasse('all');buildStatRotation();
   setInterval(tickTimer,5000);tickTimer();
@@ -676,11 +693,33 @@ function setPresence(val,silent){
   document.getElementById('absent-banner').classList.toggle('show',val==='absent');
   if(val==='present'){
     if(inscrits.indexOf(me.name)===-1)inscrits.push(me.name);
-    if(isWindowOpen()&&inscrits.length>10)applyRotation();
+    // Pendant open_rotation : NE PAS appliquer la rotation localement.
+    // On envoie au serveur et on attend la vraie liste.
+    // Le bouton reste "présent" visuellement pour garder le suspens.
     if(!silent){
       callSheet('register',{player:me.name,status:'present'}).then(function(res){
-        if(res&&res.inscrits){inscrits=res.inscrits;}
-        updateListeZone();updateBoutons();
+        if(res&&res.inscrits){
+          // Pendant open_rotation : si le serveur a exclu le joueur (absent de la liste retournée),
+          // on ne met PAS à jour le bouton — il verra son sort à 12h comme tout le monde.
+          var phase=getCurrentPhase();
+          if(phase==='open_rotation'){
+            // Mettre à jour inscrits en interne (sans changer l'UI bouton)
+            inscrits=res.inscrits;
+            // Si le joueur n'est pas dans la liste finale du serveur, on garde quand même
+            // le bouton "présent" activé visuellement (suspens)
+            document.getElementById('btn-present').classList.add('selected');
+            document.getElementById('btn-absent').classList.remove('selected');
+            document.getElementById('absent-banner').classList.remove('show');
+          } else {
+            inscrits=res.inscrits;
+            var wasKept=inscrits.indexOf(me.name)!==-1;
+            if(!wasKept){presence='absent';}
+            document.getElementById('btn-present').classList.toggle('selected',wasKept);
+            document.getElementById('btn-absent').classList.toggle('selected',!wasKept);
+            document.getElementById('absent-banner').classList.toggle('show',!wasKept);
+          }
+        }
+        updateListeZone();updateBoutons();updateBannerZone();
       });
     }
   } else {
@@ -708,7 +747,7 @@ function updateBannerZone(){
   }
   var phase=getCurrentPhase();
   if(presence==='present'){
-    if(isWindowOpen()&&(me.pts||0)>=5)el.innerHTML='<div class="banner banner-warn"><i class="ti ti-alert-triangle"></i><span>Tu as '+me.pts+' pts — risque d\'exclusion si +10 joueurs avant 12h.</span></div>';
+    if(isWindowOpen()&&(me.pts||0)>=5)el.innerHTML=''; // suspens : on ne prévient pas
     else el.innerHTML='<div class="banner banner-success"><i class="ti ti-circle-check"></i><span>Tu es inscrit pour jeudi !</span></div>';
   } else if(phase==='open_classic'&&inscrits.length>=10){
     el.innerHTML='<div class="banner banner-warn"><i class="ti ti-lock"></i><span>Groupe complet (10/10). Plus de place disponible.</span></div>';
@@ -717,8 +756,8 @@ function updateBannerZone(){
 
 function updateListeZone(){
   var el=document.getElementById('liste-zone');if(!el)return;
-  if(!isAdmin&&!isAfter12()){
-    el.innerHTML='<div class="locked-card"><i class="ti ti-lock" style="font-size:32px;color:var(--text-muted);"></i><div class="locked-text">Liste masquée jusqu\'à 12h vendredi<br><span style="font-size:12px;">'+inscrits.length+' joueur'+(inscrits.length>1?'s':'')+' inscrit'+(inscrits.length>1?'s':'')+'</span></div></div>';
+  if(!isAdmin&&getCurrentPhase()==='open_rotation'){
+    el.innerHTML='<div class="locked-card"><i class="ti ti-lock" style="font-size:32px;color:var(--text-muted);"></i><div class="locked-text">Liste masquée jusqu\'à 12h vendredi</div></div>';
     return;
   }
   if(!inscrits.length){el.innerHTML='<div class="locked-card"><div class="locked-text">Aucun joueur inscrit pour l\'instant.</div></div>';return;}
