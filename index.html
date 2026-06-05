@@ -937,6 +937,9 @@ function isPonctuelBtnActive(){
   if(matchAnnule)return false;
   var total=(inscrits?inscrits.length:0)+(ponctuels?ponctuels.length:0);
   if(total>=10)return false;
+  // Admin avec cadenas ouvert : actif en toutes circonstances (hors match annulé / groupe complet)
+  if(isAdmin&&!ponctuelLocked)return true;
+  // Sinon : phase doit être active ET cadenas ouvert
   if(ponctuelLocked)return false;
   if(!isPonctuelPhaseActive())return false;
   return true;
@@ -953,8 +956,10 @@ function updatePonctuelZone(){
   var ponctHtml='';
   if(ponctuels&&ponctuels.length>0){
     ponctHtml='<div style="margin-bottom:8px;display:flex;flex-wrap:wrap;">';
-    ponctuels.forEach(function(nom){
-      ponctHtml+='<span class="ponctuel-tag">'+nom+(isAdmin?'<button onclick="doRemovePonctuel(&quot;'+nom+'&quot;)" title="Retirer">×</button>':'')+'</span>';
+    ponctuels.forEach(function(p){
+      var nom=typeof p==='object'?p.nom:p;
+      var heure=typeof p==='object'&&p.heure?' <span style="font-weight:400;opacity:.7;">'+p.heure+'</span>':'';
+      ponctHtml+='<span class="ponctuel-tag">'+nom+heure+(isAdmin?'<button onclick="doRemovePonctuel(&quot;'+nom+'&quot;)" title="Retirer">×</button>':'')+'</span>';
     });
     ponctHtml+='</div>';
   }
