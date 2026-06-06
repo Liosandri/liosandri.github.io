@@ -499,6 +499,9 @@ window.addEventListener('load',function(){
       teamVoting=dataRes.teamVoting||null;
       mvpVoting=dataRes.mvpVoting||null;
       fifaStatsAll=dataRes.fifaStats||{};
+      ponctuels=dataRes.ponctuels||[];
+      ponctuelLocked=dataRes.ponctuelLocked||false;
+      palmaresMVP=dataRes.palmaresMVP||[];
       var joueur=null;
       for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===session.name.toLowerCase()){joueur=DB[i];break;}}
       me=joueur||{name:session.name,pts:0,history:[]};
