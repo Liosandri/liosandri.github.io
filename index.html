@@ -1067,9 +1067,12 @@ function doAddPonctuel(){
     .then(function(res){
       if(res.error){errEl.textContent=res.error;errEl.style.display='block';btn.textContent='Inscrire le joueur';btn.disabled=false;return;}
       ponctuels=res.ponctuels||ponctuels;
+      if(res.teamVoting)teamVoting=res.teamVoting;
       closePonctuelModal();
       updatePonctuelZone();
       updateBoutons();
+      updateListeZone();
+      if(teamVoting&&teamVoting.team1)buildTeamTab();
     })
     .catch(function(){errEl.textContent='Erreur serveur.';errEl.style.display='block';btn.textContent='Inscrire le joueur';btn.disabled=false;});
 }
