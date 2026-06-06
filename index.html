@@ -233,6 +233,37 @@ input:focus,select:focus{border-color:var(--blue);}
 .btn-lock.unlocked{border-color:var(--warn);color:var(--warn);}
 .ponctuel-tag{display:inline-flex;align-items:center;gap:5px;background:rgba(30,144,255,.12);border:1px solid rgba(30,144,255,.2);color:var(--blue);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:600;margin:3px;}
 .ponctuel-tag button{background:none;border:none;color:inherit;cursor:pointer;padding:0;font-size:14px;line-height:1;opacity:.7;}
+
+/* ── DRAG & DROP ÉQUIPES ── */
+.pitch-token{cursor:grab;user-select:none;touch-action:none;}
+.pitch-token.dragging{opacity:0.4;transform:scale(0.95);}
+.pitch-token.drag-over{outline:2px solid var(--gold);border-radius:50%;}
+.pitch-half.drag-target{background:rgba(255,255,255,0.05);border-radius:8px;transition:background .15s;}
+
+/* ── SCORE SAISIE ── */
+.score-zone{margin-top:14px;border-radius:12px;border:1.5px solid var(--border);overflow:hidden;}
+.score-header{padding:12px 14px;background:var(--bg-card2);font-size:13px;font-weight:700;color:var(--silver-light);display:flex;align-items:center;gap:8px;}
+.score-btns{display:flex;gap:8px;padding:12px;}
+.score-btn{flex:1;padding:14px 6px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text-muted);font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;}
+.score-btn:hover{border-color:var(--blue);color:var(--blue);}
+.score-btn.selected-t1{border-color:#3d6db5;background:rgba(61,109,181,.15);color:#6fa3ef;}
+.score-btn.selected-nul{border-color:var(--gold);background:rgba(212,175,55,.12);color:var(--gold);}
+.score-btn.selected-t2{border-color:#b53d3d;background:rgba(181,61,61,.15);color:#ef6f6f;}
+.score-pending{margin:8px 12px 12px;padding:10px 14px;background:rgba(255,149,0,.08);border:1px solid rgba(255,149,0,.3);border-radius:8px;font-size:12px;color:var(--warn);}
+
+/* ── ACCORDÉON ADMIN ── */
+.admin-section{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px;}
+.admin-section-header{padding:14px 16px;background:var(--bg-card2);display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-weight:700;font-size:14px;color:var(--silver-light);}
+.admin-section-header i.chevron{transition:transform .2s;color:var(--text-muted);}
+.admin-section-header.open i.chevron{transform:rotate(180deg);}
+.admin-section-body{display:none;padding:12px;}
+.admin-section-body.open{display:block;}
+.admin-cmd-btn{width:100%;padding:12px 14px;margin-bottom:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;transition:border-color .15s;}
+.admin-cmd-btn:hover{border-color:var(--blue);}
+.admin-cmd-btn:last-child{margin-bottom:0;}
+.admin-cmd-btn.danger{border-color:rgba(255,59,48,.3);color:var(--danger);}
+.admin-cmd-btn.danger:hover{border-color:var(--danger);}
+.score-pending-admin{padding:14px;background:rgba(255,149,0,.08);border:1px solid rgba(255,149,0,.3);border-radius:10px;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -372,11 +403,60 @@ input:focus,select:focus{border-color:var(--blue);}
     </div>
 
     <div id="tab-admin" style="display:none;">
-      <div class="banner banner-info"><i class="ti ti-info-circle"></i><span>Saisis V, D ou — pour chaque joueur après le match.</span></div>
-      <div class="section-label">Résultats du <span id="admin-date">—</span></div>
-      <div class="liste-card"><div id="admin-list"></div></div>
-      <button class="btn-main" id="save-btn" onclick="saveResults()" style="margin-top:12px;">💾 Enregistrer dans Google Sheet</button>
-      <button class="btn-danger" id="cancel-btn" onclick="cancelMatch()">❌ Annuler le match</button>
+
+      <!-- Score en attente de validation -->
+      <div id="admin-score-pending" style="display:none;"></div>
+
+      <!-- Résultats -->
+      <div class="admin-section">
+        <div class="admin-section-header" onclick="toggleAdminSection('resultats')">
+          <span>📋 Résultats du match</span><i class="ti ti-chevron-down chevron"></i>
+        </div>
+        <div class="admin-section-body" id="body-resultats">
+          <div class="banner banner-info" style="margin-bottom:10px;"><i class="ti ti-info-circle"></i><span>Uniquement les 10 joueurs retenus.</span></div>
+          <div class="section-label">Match du <span id="admin-date">—</span></div>
+          <div class="liste-card"><div id="admin-list"></div></div>
+          <button class="btn-main" id="save-btn" onclick="saveResults()" style="margin-top:12px;">💾 Enregistrer dans Google Sheet</button>
+          <button class="btn-danger" id="cancel-btn" onclick="cancelMatch()" style="margin-top:8px;">❌ Annuler le match</button>
+        </div>
+      </div>
+
+      <!-- Commandes admin accordéon -->
+      <div class="admin-section">
+        <div class="admin-section-header" onclick="toggleAdminSection('cycle')">
+          <span>📅 Cycle hebdomadaire</span><i class="ti ti-chevron-down chevron"></i>
+        </div>
+        <div class="admin-section-body" id="body-cycle">
+          <button class="admin-cmd-btn" onclick="adminCmd('notifyInscriptionsOuvertes','Ouvrir les inscriptions rotation (vendredi 8h) ?')">
+            <i class="ti ti-door-enter"></i> Ouvrir inscriptions rotation
+          </button>
+          <button class="admin-cmd-btn" onclick="adminCmd('notifyInscriptionsClassiques','Fermer la rotation et ouvrir les classiques (vendredi 12h) ?')">
+            <i class="ti ti-clock"></i> Fermer rotation / ouvrir classiques
+          </button>
+          <button class="admin-cmd-btn" onclick="adminCmd('initMVPVoting','Ouvrir le vote MVP (jeudi 20h) ?')">
+            <i class="ti ti-trophy"></i> Ouvrir vote MVP
+          </button>
+          <button class="admin-cmd-btn" onclick="adminCmd('closeMVPVoting','Clore le vote MVP et annoncer le gagnant ?')">
+            <i class="ti ti-lock"></i> Clore vote MVP
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <div class="admin-section-header" onclick="toggleAdminSection('reset')">
+          <span>🧹 Reset</span><i class="ti ti-chevron-down chevron"></i>
+        </div>
+        <div class="admin-section-body" id="body-reset">
+          <button class="admin-cmd-btn danger" onclick="adminCmd('resetAll','Reset complet : vider matchAnnule, teamVoting, mvpVoting, ponctuelLocked ?')">
+            <i class="ti ti-trash"></i> Reset complet
+          </button>
+          <button class="admin-cmd-btn danger" onclick="adminCmd('resetPonctuels','Vider uniquement les joueurs ponctuels de cette semaine ?')">
+            <i class="ti ti-user-minus"></i> Reset ponctuels uniquement
+          </button>
+        </div>
+      </div>
+
+      <div id="admin-cmd-result" style="margin-top:8px;font-size:13px;text-align:center;color:var(--success);display:none;"></div>
     </div>
 
     <div id="tab-team" style="display:none;">
@@ -873,17 +953,102 @@ function switchStat(s){['perso','classe','rotation'].forEach(function(t){documen
 
 // ── ADMIN ──────────────────────────────────────────────────
 function buildAdminList(){
-  document.getElementById('admin-list').innerHTML=DB.map(function(p){return'<div class="admin-row"><span style="flex:1;font-size:14px;color:var(--silver-light);">'+p.name+'</span><div style="display:flex;gap:5px;"><button class="rlabel sel-abs" id="la-'+p.name+'" onclick="selRes(\''+p.name+'\',\'\')">—</button><button class="rlabel" id="lv-'+p.name+'" onclick="selRes(\''+p.name+'\',\'V\')">V</button><button class="rlabel" id="ld-'+p.name+'" onclick="selRes(\''+p.name+'\',\'D\')">D</button></div></div>';}).join('');
+  var joueurs=(teamVoting&&teamVoting.eligible&&teamVoting.eligible.length)?teamVoting.eligible:DB.map(function(p){return p.name;});
+  document.getElementById('admin-list').innerHTML=joueurs.map(function(name){
+    return'<div class="admin-row"><span style="flex:1;font-size:14px;color:var(--silver-light);">'+name+'</span>'+
+      '<div style="display:flex;gap:5px;">'+
+      '<button class="rlabel sel-abs" id="la-'+name+'" onclick="selRes(&quot;'+name+'&quot;,&quot;&quot;)">—</button>'+
+      '<button class="rlabel" id="lv-'+name+'" onclick="selRes(&quot;'+name+'&quot;,&quot;V&quot;)">V</button>'+
+      '<button class="rlabel" id="ld-'+name+'" onclick="selRes(&quot;'+name+'&quot;,&quot;D&quot;)">D</button>'+
+      '</div></div>';
+  }).join('');
+  buildAdminScorePending();
 }
-function selRes(name,val){document.getElementById('la-'+name).className='rlabel'+(val===''?' sel-abs':'');document.getElementById('lv-'+name).className='rlabel'+(val==='V'?' sel-v':'');document.getElementById('ld-'+name).className='rlabel'+(val==='D'?' sel-d':'');}
+
+function buildAdminScorePending(){
+  var el=document.getElementById('admin-score-pending');
+  if(!el)return;
+  var pending=getPendingScore();
+  if(!pending){el.style.display='none';return;}
+  var resLabel=pending.result==='team1'?'🔵 Équipe 1 gagne':pending.result==='nul'?'🤝 Match nul (V pour tous)':'🔴 Équipe 2 gagne';
+  el.style.display='block';
+  el.innerHTML='<div class="score-pending-admin">'+
+    '<div style="font-weight:700;font-size:13px;color:var(--warn);margin-bottom:8px;">⚠️ Score en attente de validation</div>'+
+    '<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Proposé par : '+pending.by+'</div>'+
+    '<div style="font-size:14px;font-weight:700;margin-bottom:12px;">'+resLabel+'</div>'+
+    '<button class="btn-main" onclick="validatePendingScore()" style="margin-top:0;">✅ Valider et enregistrer</button>'+
+    '<button class="btn-ghost" onclick="rejectPendingScore()">❌ Rejeter</button>'+
+    '</div>';
+}
+
+function getPendingScore(){try{return JSON.parse(localStorage.getItem('calcetto_pending_score')||'null');}catch(e){return null;}}
+function setPendingScore(data){localStorage.setItem('calcetto_pending_score',JSON.stringify(data));}
+function clearPendingScore(){localStorage.removeItem('calcetto_pending_score');}
+
+function validatePendingScore(){
+  var pending=getPendingScore();
+  if(!pending||!teamVoting)return;
+  var results={};
+  var team1=teamVoting.team1||[];
+  var team2=teamVoting.team2||[];
+  if(pending.result==='nul'){
+    team1.concat(team2).forEach(function(n){results[n]='V';});
+  } else if(pending.result==='team1'){
+    team1.forEach(function(n){results[n]='V';});
+    team2.forEach(function(n){results[n]='D';});
+  } else {
+    team2.forEach(function(n){results[n]='V';});
+    team1.forEach(function(n){results[n]='D';});
+  }
+  callSheet('saveResults',{results:JSON.stringify(results)})
+    .then(function(){clearPendingScore();alert('✅ Résultats validés !');location.reload();})
+    .catch(function(err){alert('Erreur: '+err.message);});
+}
+
+function rejectPendingScore(){
+  if(!confirm('Rejeter le score proposé ?'))return;
+  clearPendingScore();buildAdminScorePending();
+}
+
+function selRes(name,val){
+  document.getElementById('la-'+name).className='rlabel'+(val===''?' sel-abs':'');
+  document.getElementById('lv-'+name).className='rlabel'+(val==='V'?' sel-v':'');
+  document.getElementById('ld-'+name).className='rlabel'+(val==='D'?' sel-d':'');
+}
 
 function saveResults(){
+  var joueurs=(teamVoting&&teamVoting.eligible&&teamVoting.eligible.length)?teamVoting.eligible:DB.map(function(p){return p.name;});
   var results={};
-  DB.forEach(function(p){if(document.getElementById('lv-'+p.name)&&document.getElementById('lv-'+p.name).classList.contains('sel-v'))results[p.name]='V';else if(document.getElementById('ld-'+p.name)&&document.getElementById('ld-'+p.name).classList.contains('sel-d'))results[p.name]='D';else results[p.name]='';});
+  joueurs.forEach(function(name){
+    if(document.getElementById('lv-'+name)&&document.getElementById('lv-'+name).classList.contains('sel-v'))results[name]='V';
+    else if(document.getElementById('ld-'+name)&&document.getElementById('ld-'+name).classList.contains('sel-d'))results[name]='D';
+    else results[name]='';
+  });
   var btn=document.getElementById('save-btn');btn.textContent='Enregistrement...';btn.disabled=true;
   callSheet('saveResults',{results:JSON.stringify(results)})
-    .then(function(){alert('✅ Résultats sauvegardés !');location.reload();})
-    .catch(function(err){alert('Erreur: '+err.message);btn.textContent='💾 Enregistrer dans Google Sheet';btn.disabled=false;});
+    .then(function(){clearPendingScore();alert('✅ Résultats sauvegardés !');location.reload();})
+    .catch(function(err){alert('Erreur: '+err.message);btn.textContent='💾 Enregistrer';btn.disabled=false;});
+}
+
+function toggleAdminSection(id){
+  var body=document.getElementById('body-'+id);
+  var header=body?body.previousElementSibling:null;
+  if(!body)return;
+  var isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  if(header)header.classList.toggle('open',!isOpen);
+}
+
+function adminCmd(action,confirmMsg){
+  if(!confirm(confirmMsg))return;
+  var resEl=document.getElementById('admin-cmd-result');
+  if(resEl)resEl.style.display='none';
+  callSheet(action,{})
+    .then(function(res){
+      if(resEl){resEl.style.display='block';resEl.style.color=res&&res.error?'var(--danger)':'var(--success)';resEl.textContent=res&&res.error?('❌ '+res.error):'✅ Action effectuée';}
+      if(!res||!res.error){setTimeout(function(){location.reload();},1500);}
+    })
+    .catch(function(){if(resEl){resEl.style.display='block';resEl.style.color='var(--danger)';resEl.textContent='❌ Erreur serveur';}});
 }
 
 function cancelMatch(){
@@ -1086,6 +1251,47 @@ function doRemovePonctuel(nom){
   });
 }
 
+
+// ── DRAG & DROP ÉQUIPES (admin) ────────────────────────────
+function enableDragDrop(){
+  if(!isAdmin)return;
+  var tokens=document.querySelectorAll('.pitch-token[draggable]');
+  var draggedPlayer=null,draggedTeam=null;
+  tokens.forEach(function(tok){
+    tok.addEventListener('dragstart',function(e){
+      draggedPlayer=tok.getAttribute('data-player');
+      draggedTeam=tok.getAttribute('data-team');
+      tok.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+    });
+    tok.addEventListener('dragend',function(){tok.classList.remove('dragging');});
+    tok.addEventListener('dragover',function(e){e.preventDefault();tok.classList.add('drag-over');});
+    tok.addEventListener('dragleave',function(){tok.classList.remove('drag-over');});
+    tok.addEventListener('drop',function(e){
+      e.preventDefault();tok.classList.remove('drag-over');
+      var targetPlayer=tok.getAttribute('data-player');
+      var targetTeam=tok.getAttribute('data-team');
+      if(!draggedPlayer||draggedPlayer===targetPlayer)return;
+      // Échanger les deux joueurs
+      var tv=teamVoting;
+      var i1=tv.team1.indexOf(draggedPlayer),i2=tv.team1.indexOf(targetPlayer);
+      var j1=tv.team2.indexOf(draggedPlayer),j2=tv.team2.indexOf(targetPlayer);
+      if(draggedTeam==='t1'&&targetTeam==='t2'){tv.team1.splice(i1,1,targetPlayer);tv.team2.splice(j2,1,draggedPlayer);}
+      else if(draggedTeam==='t2'&&targetTeam==='t1'){tv.team2.splice(j1,1,targetPlayer);tv.team1.splice(i2,1,draggedPlayer);}
+      else if(draggedTeam==='t1'&&targetTeam==='t1'){tv.team1.splice(i1,1,targetPlayer);tv.team1.splice(i2<i1?i2:i2,1,draggedPlayer);}
+      else if(draggedTeam==='t2'&&targetTeam==='t2'){tv.team2.splice(j1,1,targetPlayer);tv.team2.splice(j2<j1?j2:j2,1,draggedPlayer);}
+      // Reset votes car équipes changées
+      tv.votesOui=0;tv.votesNon=0;tv.voters=[];tv.eligible=tv.team1.concat(tv.team2);
+      // Sauvegarder côté serveur
+      callSheet('regenerateTeams',{inscrits:JSON.stringify(tv.team1.concat(tv.team2))}).then(function(res){
+        if(res&&res.team1){teamVoting=res;}
+        buildTeamTab();
+        setTimeout(enableDragDrop,100);
+      });
+    });
+  });
+}
+
 // ── TEAM TAB ───────────────────────────────────────────────
 function buildTeamTab(){
   var el=document.getElementById('team-content');
@@ -1111,21 +1317,24 @@ function buildTeamTab(){
   }
   var mvpActive=mvpVoting&&mvpVoting.candidates&&!mvpClosed&&mvpEligible;
   function makeToken(n,teamClass){
+  function makeToken(n,teamClass){
     var voteCount=mvpVotes[n]||0;
     var isMyVote=mvpHasVoted&&mvpVoting&&mvpVoting.myVote===n;
     var canVote=mvpActive&&!mvpHasVoted&&n!==me.name;
     var showCount=mvpVoting&&mvpVoting.candidates&&(mvpHasVoted||mvpClosed)&&voteCount>0;
-    var circleStyle=isMyVote?'border-color:var(--gold);border-width:3px;':canVote?'cursor:pointer;':'pointer-events:none;';
+    var circleStyle=isMyVote?'border-color:var(--gold);border-width:3px;':canVote?'cursor:pointer;':'';
     var badgeHtml=showCount?'<div style="position:absolute;top:-6px;right:-6px;background:var(--gold);color:#000;border-radius:50%;width:18px;height:18px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;">'+voteCount+'</div>':
                  (canVote?'<div style="position:absolute;top:-6px;right:-6px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;display:flex;align-items:center;justify-content:center;">🏆</div>':'')+'';
-    var clickFn=canVote?'onclick="doVoteMVPToken('+"'"+n+"'"+')" title="Voter MVP pour '+n+'"':'onclick=""';
-    return'<div class="pitch-token '+teamClass+'" style="position:relative;">'+
+    var clickFn=canVote?'onclick="doVoteMVPToken(\"'+n+'\")" title="Voter MVP pour '+n+'"':'';
+    var draggable=isAdmin?'draggable="true"':'';
+    return'<div class="pitch-token '+teamClass+'" '+draggable+' data-player="'+n+'" data-team="'+teamClass+'" style="position:relative;">'+
       '<div class="pitch-token-circle" style="'+circleStyle+'" '+clickFn+'>'+n.substring(0,2).toUpperCase()+'</div>'+
       badgeHtml+
       '<div class="pitch-token-name">'+n.split(' ')[0]+'</div></div>';
   }
-  var t1tokens=tv.team1.map(function(n){return makeToken(n,'t1');}).join('');
   var t2tokens=tv.team2.map(function(n){return makeToken(n,'t2');}).join('');
+  var t1tokens=tv.team1.map(function(n){return makeToken(n,'t1');}).join('');
+  setTimeout(enableDragDrop,150);
 
   var voteHtml='';
   if(!isEligible){
@@ -1163,7 +1372,64 @@ function buildTeamTab(){
     '</div>'+
     // Bandeau vote MVP sous le terrain
     buildMVPBandeauTeamTab()+
+    // Zone saisie score
+    buildScoreZone()+
     '';
+}
+
+function buildScoreZone(){
+  if(!teamVoting||!teamVoting.team1||!teamVoting.team1.length)return'';
+  // Disponible uniquement pour les 10 retenus à partir de jeudi 20h (ou si unlock admin)
+  var isElig=teamVoting.eligible&&teamVoting.eligible.indexOf(me.name)!==-1;
+  var now=new Date();
+  var paris=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Paris'}));
+  var day=paris.getDay(),h=paris.getHours()+paris.getMinutes()/60;
+  var isScoreTime=(day===4&&h>=20)||isAdmin; // jeudi 20h+ ou admin
+  if(!isElig&&!isAdmin)return'';
+  if(!isScoreTime)return'<div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:10px;padding:8px;">⏳ Saisie du score disponible jeudi à 20h</div>';
+  var pending=getPendingScore();
+  if(pending){
+    var resLabel=pending.result==='team1'?'🔵 Équipe 1 gagne':pending.result==='nul'?'🤝 Nul (V pour tous)':'🔴 Équipe 2 gagne';
+    return'<div class="score-zone">'+
+      '<div class="score-header"><i class="ti ti-trophy"></i>Score proposé</div>'+
+      '<div class="score-pending">'+resLabel+' · par '+pending.by+'<br><span style="font-size:11px;">En attente de validation admin</span></div>'+
+      '</div>';
+  }
+  return'<div class="score-zone">'+
+    '<div class="score-header"><i class="ti ti-ball-football"></i>Résultat du match</div>'+
+    '<div class="score-btns">'+
+    '<button class="score-btn" id="sb-t1" onclick="selectScore(&quot;team1&quot;)">🔵<br>Équipe 1<br>gagne</button>'+
+    '<button class="score-btn" id="sb-nul" onclick="selectScore(&quot;nul&quot;)">🤝<br>Match<br>nul</button>'+
+    '<button class="score-btn" id="sb-t2" onclick="selectScore(&quot;team2&quot;)">🔴<br>Équipe 2<br>gagne</button>'+
+    '</div>'+
+    '<div style="padding:0 12px 12px;">'+
+    '<button class="btn-main" onclick="submitScore()" style="margin-top:0;">📤 Soumettre à l\'admin</button>'+
+    '</div>'+
+    '</div>';
+}
+
+var selectedScore=null;
+function selectScore(result){
+  selectedScore=result;
+  var sb1=document.getElementById('sb-t1');
+  var sbn=document.getElementById('sb-nul');
+  var sb2=document.getElementById('sb-t2');
+  if(sb1)sb1.className='score-btn'+(result==='team1'?' selected-t1':'');
+  if(sbn)sbn.className='score-btn'+(result==='nul'?' selected-nul':'');
+  if(sb2)sb2.className='score-btn'+(result==='team2'?' selected-t2':'');
+}
+
+function submitScore(){
+  if(!selectedScore){alert('Sélectionne un résultat d\'abord.');return;}
+  if(!confirm('Soumettre ce résultat pour validation ?'))return;
+  var data={result:selectedScore,by:me.name,date:new Date().toISOString()};
+  setPendingScore(data);
+  // Notif visuelle
+  buildTeamTab();
+  if(isAdmin){
+    // Admin valide directement
+    if(confirm('Tu es admin — valider directement les résultats ?')){validatePendingScore();}
+  }
 }
 
 function buildMVPBandeauTeamTab(){
@@ -1276,6 +1542,7 @@ function doVoteMVP(candidate){
       buildMVPTab();
       if(teamVoting)buildTeamTab();
     });
+}
 }
 </script>
 </body>
