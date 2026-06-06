@@ -383,16 +383,14 @@ input:focus,select:focus{border-color:var(--blue);}
       <div id="team-content"><div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;">⚡ Équipes disponibles quand le groupe est complet (10 joueurs)</div></div>
     </div>
 
-    <div id="tab-mvp" style="display:none;">
-      <div id="mvp-content"><div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;">🏆 Vote MVP disponible après le match du jeudi à 20h</div></div>
-    </div>
+
   </div>
 
   <nav class="bottom-nav">
     <button class="nav-item active" id="nav-ins" onclick="switchTab('inscription')"><i class="ti ti-calendar-event"></i>Match</button>
     <button class="nav-item" id="nav-sta" onclick="switchTab('stats')"><i class="ti ti-chart-bar"></i>Stats</button>
-    <button class="nav-item" id="nav-tea" onclick="switchTab('team')" style="display:none;"><i class="ti ti-users"></i>Teams</button>
-    <button class="nav-item" id="nav-mvp" onclick="switchTab('mvp')" style="display:none;"><i class="ti ti-trophy"></i>MVP</button>
+    <button class="nav-item" id="nav-tea" onclick="switchTab('team')" style="display:none;"><i class="ti ti-users"></i>Teams & MVP</button>
+    
     <button class="nav-item" id="nav-pro" onclick="switchTab('profil')"><i class="ti ti-user"></i>Profil</button>
     <button class="nav-item" id="nav-adm" onclick="switchTab('admin')" style="display:none;"><i class="ti ti-shield"></i>Admin</button>
   </nav>
@@ -407,6 +405,7 @@ var selectedStatPlayer=null;
 var matchAnnule=false;
 var teamVoting=null,mvpVoting=null,fifaStatsAll={};
 var ponctuels=[],ponctuelLocked=false;
+var palmaresMVP=[];
 
 function callSheet(action,params){
   var url=SCRIPT_URL+'?action='+encodeURIComponent(action);
@@ -458,6 +457,7 @@ function refreshData(){
     fifaStatsAll=dataRes.fifaStats||{};
     ponctuels=dataRes.ponctuels||[];
     ponctuelLocked=dataRes.ponctuelLocked||false;
+    palmaresMVP=dataRes.palmaresMVP||[];
     var joueur=null;
     for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===me.name.toLowerCase()){joueur=DB[i];break;}}
     if(joueur)me=joueur;
@@ -479,6 +479,7 @@ function refreshData(){
     buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();
     ponctuels=dataRes.ponctuels||[];
     ponctuelLocked=dataRes.ponctuelLocked||false;
+    palmaresMVP=dataRes.palmaresMVP||[];
     updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();
     indicator.classList.remove('visible');
   }).catch(function(){indicator.classList.remove('visible');});
@@ -558,6 +559,9 @@ function doLogin(){
         teamVoting=dataRes.teamVoting||null;
         mvpVoting=dataRes.mvpVoting||null;
         fifaStatsAll=dataRes.fifaStats||{};
+        ponctuels=dataRes.ponctuels||[];
+        ponctuelLocked=dataRes.ponctuelLocked||false;
+        palmaresMVP=dataRes.palmaresMVP||[];
         var joueur=null;
         for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===nomJoueur.toLowerCase()){joueur=DB[i];break;}}
         me=joueur||{name:nomJoueur,pts:0,history:[]};
@@ -853,15 +857,14 @@ function setPeriod(p){buildStatPerso(p);}
 function setPeriodClasse(p){buildStatClasse(p);}
 
 function switchTab(tab){
-  ['inscription','stats','profil','admin','team','mvp'].forEach(function(t){
+  ['inscription','stats','profil','admin','team'].forEach(function(t){
     document.getElementById('tab-'+t).style.display=t===tab?'block':'none';
-    var shortMap={inscription:'ins',stats:'sta',profil:'pro',admin:'adm',team:'tea',mvp:'mvp'};
+    var shortMap={inscription:'ins',stats:'sta',profil:'pro',admin:'adm',team:'tea'};
     var n=document.getElementById('nav-'+shortMap[t]);
     if(n)n.classList.toggle('active',t===tab);
   });
   if(tab==='stats'){buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();}
   if(tab==='team'){buildTeamTab();}
-  if(tab==='mvp'){buildMVPTab();}
 }
 function switchStat(s){['perso','classe','rotation'].forEach(function(t){document.getElementById('stat-'+t).style.display=t===s?'block':'none';document.getElementById('pill-'+t).classList.toggle('active',t===s);});}
 
@@ -898,9 +901,7 @@ function cancelMatch(){
 // ── TAB VISIBILITY ─────────────────────────────────────────
 function updateTabVisibility(){
   var navTea=document.getElementById('nav-tea');
-  var navMvp=document.getElementById('nav-mvp');
   if(navTea)navTea.style.display=(teamVoting&&teamVoting.team1&&teamVoting.team1.length)?'flex':'none';
-  if(navMvp)navMvp.style.display=(mvpVoting&&mvpVoting.candidates&&mvpVoting.candidates.length)?'flex':'none';
 }
 
 // ── FIFA CARD ──────────────────────────────────────────────
@@ -921,6 +922,22 @@ function buildFifaCard(player){
     var cls=v>=80?'fv-elite':v>=70?'fv-good':v>=60?'fv-avg':'fv-low';
     return'<div class="fifa-stat '+cls+'"><div class="fifa-stat-val">'+v+'</div><div class="fifa-stat-lbl">'+d.l+'</div><div class="fifa-stat-bar"><div class="fifa-stat-bar-fill" style="width:'+v+'%"></div></div></div>';
   }).join('');
+  // Badge MVP : compter les titres depuis palmaresMVP
+  var mvpCount=0;
+  if(palmaresMVP&&Array.isArray(palmaresMVP)){
+    palmaresMVP.forEach(function(entry){if(entry.mvp===player.name)mvpCount++;});
+  }
+  var mvpBadge=mvpCount>0?
+    '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin-left:auto;min-width:44px;">'+
+    '<div style="position:relative;width:44px;height:44px;">'+
+    '<svg viewBox="0 0 44 44" width="44" height="44">'+
+    '<polygon points="22,2 27,16 42,16 30,25 35,40 22,31 9,40 14,25 2,16 17,16" fill="#C0C0C0" stroke="#A0A0A0" stroke-width="1"/>'+
+    '</svg>'+
+    '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;">'+
+    '<span style="font-size:7px;font-weight:900;color:#333;letter-spacing:.5px;">MVP</span>'+
+    '<span style="font-size:11px;font-weight:800;color:#333;">'+mvpCount+'</span>'+
+    '</div></div></div>':
+    '';
   return'<div class="section-label">Profil FIFA</div>'+
     '<div class="fifa-card">'+
     '<div class="fifa-card-header">'+
@@ -928,6 +945,7 @@ function buildFifaCard(player){
     '<div class="fifa-player-info">'+
     '<div class="fifa-player-name">'+player.name+' <span style="font-size:18px;letter-spacing:2px;">'+starsHtml+'</span></div>'+
     '</div>'+
+    mvpBadge+
     '</div>'+
     '<div class="fifa-stats-row">'+statsHtml+'</div>'+
     '</div>';
@@ -1160,7 +1178,7 @@ function buildMVPBandeauTeamTab(){
     var totalV=0;Object.values(mv.votes||{}).forEach(function(v){totalV+=v;});
     return'<div style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:10px;padding:10px;"><span style="color:var(--gold);">✔</span> Vote MVP enregistré · '+totalV+'/'+(mv.candidates.length)+' ont voté</div>';
   }
-  return'<div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;padding:8px;">🏆 Clique sur un joueur pour voter MVP (pas toi-même)</div>';
+  return'<div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;padding:8px;">🏆 Clique sur un joueur pour voter MVP · Interdit de voter pour toi-même</div>';
 }
 
 function doVoteMVPToken(candidate){
