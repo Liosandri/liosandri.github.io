@@ -931,14 +931,14 @@ function buildFifaCard(player){
     palmaresMVP.forEach(function(entry){if(entry.mvp===player.name)mvpCount++;});
   }
   var mvpBadge=mvpCount>0?
-    '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin-left:auto;min-width:44px;">'+
-    '<div style="position:relative;width:58px;height:58px;">'+
-    '<svg viewBox="0 0 58 58" width="58" height="58">'+
-    '<polygon points="29,3 35,20 54,20 39,32 45,50 29,39 13,50 19,32 4,20 23,20" fill="#C0C0C0" stroke="#A0A0A0" stroke-width="1"/>'+
+    '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin-left:auto;min-width:72px;">'+
+    '<div style="position:relative;width:72px;height:72px;">'+
+    '<svg viewBox="0 0 72 72" width="72" height="72">'+
+    '<polygon points="36,3 44,25 68,25 49,40 56,63 36,49 16,63 23,40 4,25 28,25" fill="#C0C0C0" stroke="#999" stroke-width="1.5"/>'+
     '</svg>'+
     '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;">'+
-    '<span style="font-size:8px;font-weight:900;color:#333;letter-spacing:.5px;">MVP</span>'+
-    '<span style="font-size:14px;font-weight:800;color:#333;">'+mvpCount+'</span>'+
+    '<span style="font-size:10px;font-weight:900;color:#333;letter-spacing:.5px;">MVP</span>'+
+    '<span style="font-size:18px;font-weight:800;color:#333;">'+mvpCount+'</span>'+
     '</div></div></div>':
     '';
   return'<div class="section-label">Profil FIFA</div>'+
