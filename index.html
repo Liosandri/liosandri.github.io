@@ -1253,6 +1253,8 @@ function doRemovePonctuel(nom){
 
 
 // ── DRAG & DROP ÉQUIPES (admin) ────────────────────────────
+var teamsPendingValidation=false;
+
 function enableDragDrop(){
   if(!isAdmin)return;
   var tokens=document.querySelectorAll('.pitch-token[draggable]');
@@ -1272,24 +1274,37 @@ function enableDragDrop(){
       var targetPlayer=tok.getAttribute('data-player');
       var targetTeam=tok.getAttribute('data-team');
       if(!draggedPlayer||draggedPlayer===targetPlayer)return;
-      // Échanger les deux joueurs
       var tv=teamVoting;
       var i1=tv.team1.indexOf(draggedPlayer),i2=tv.team1.indexOf(targetPlayer);
       var j1=tv.team2.indexOf(draggedPlayer),j2=tv.team2.indexOf(targetPlayer);
       if(draggedTeam==='t1'&&targetTeam==='t2'){tv.team1.splice(i1,1,targetPlayer);tv.team2.splice(j2,1,draggedPlayer);}
       else if(draggedTeam==='t2'&&targetTeam==='t1'){tv.team2.splice(j1,1,targetPlayer);tv.team1.splice(i2,1,draggedPlayer);}
-      else if(draggedTeam==='t1'&&targetTeam==='t1'){tv.team1.splice(i1,1,targetPlayer);tv.team1.splice(i2<i1?i2:i2,1,draggedPlayer);}
-      else if(draggedTeam==='t2'&&targetTeam==='t2'){tv.team2.splice(j1,1,targetPlayer);tv.team2.splice(j2<j1?j2:j2,1,draggedPlayer);}
-      // Reset votes car équipes changées
-      tv.votesOui=0;tv.votesNon=0;tv.voters=[];tv.eligible=tv.team1.concat(tv.team2);
-      // Sauvegarder côté serveur
-      callSheet('regenerateTeams',{inscrits:JSON.stringify(tv.team1.concat(tv.team2))}).then(function(res){
-        if(res&&res.team1){teamVoting=res;}
-        buildTeamTab();
-        setTimeout(enableDragDrop,100);
-      });
+      else if(draggedTeam==='t1'&&targetTeam==='t1'){tv.team1.splice(i1,1,targetPlayer);tv.team1.splice(i2,1,draggedPlayer);}
+      else if(draggedTeam==='t2'&&targetTeam==='t2'){tv.team2.splice(j1,1,targetPlayer);tv.team2.splice(j2,1,draggedPlayer);}
+      teamsPendingValidation=true;
+      buildTeamTab();
+      setTimeout(enableDragDrop,100);
     });
   });
+}
+
+function doValidateTeams(){
+  if(!confirm('Valider et sauvegarder ces équipes ?'))return;
+  var btn=document.getElementById('btn-validate-teams');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Sauvegarde...';}
+  var tv=teamVoting;
+  var team1save=tv.team1.slice();
+  var team2save=tv.team2.slice();
+  tv.votesOui=0;tv.votesNon=0;tv.voters=[];tv.eligible=team1save.concat(team2save);
+  callSheet('regenerateTeams',{inscrits:JSON.stringify(team1save.concat(team2save))})
+    .then(function(res){
+      if(res&&res.team1){teamVoting=res;}
+      teamVoting.team1=team1save;
+      teamVoting.team2=team2save;
+      teamVoting.eligible=team1save.concat(team2save);
+      teamsPendingValidation=false;
+      buildTeamTab();
+    });
 }
 
 // ── TEAM TAB ───────────────────────────────────────────────
@@ -1368,6 +1383,7 @@ function buildTeamTab(){
     '<div class="vote-bar-row"><div class="vote-bar-meta"><span>❌ NON</span><span>'+votesNon+' ('+pctNon+'%)</span></div><div class="vote-bar-bg"><div class="vote-bar-fill vbar-t2" style="width:'+pctNon+'%"></div></div></div>'+
     '<div style="font-size:11px;color:var(--text-muted);margin-top:6px;">'+totalVotes+' vote'+(totalVotes>1?'s':'')+' · Anonyme</div>'+
     (isAdmin?'<button class="btn-ghost" style="margin-top:10px;" onclick="doRegenerateTeams()">🔄 Régénérer les équipes</button>':'')+
+    (isAdmin&&teamsPendingValidation?'<button id="btn-validate-teams" class="btn-main" style="margin-top:8px;background:#00c853;border:none;" onclick="doValidateTeams()">✅ Valider ces équipes</button>':'')+
     '</div>'+
     // Bandeau vote MVP sous le terrain
     buildMVPBandeauTeamTab()+
@@ -1541,6 +1557,7 @@ function doVoteMVP(candidate){
       buildMVPTab();
       if(teamVoting)buildTeamTab();
     });
+}
 }
 </script>
 </body>
