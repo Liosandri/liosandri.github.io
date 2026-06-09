@@ -1665,7 +1665,7 @@ function selectScore(result){
 }
 
 function submitScore(){
-  if(!selectedScore){alert('Sélectionne un résultat d'abord.');return;}
+  if(!selectedScore){alert("Sélectionne un résultat d'abord.");return;}
   if(!confirm('Soumettre ce résultat pour validation ?'))return;
   if(isAdmin){
     var data={result:selectedScore,by:me.name,date:new Date().toISOString()};
