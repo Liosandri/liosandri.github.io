@@ -451,25 +451,6 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
       <!-- Score en attente de validation -->
       <div id="admin-score-pending" style="display:none;"></div>
 
-      <!-- Notifications globales -->
-      <div class="admin-section">
-        <div class="admin-section-header" onclick="toggleAdminSection('notifs')">
-          <span>🔔 Notifications</span><i class="ti ti-chevron-down chevron"></i>
-        </div>
-        <div class="admin-section-body" id="body-notifs">
-          <div class="toggle-row">
-            <div>
-              <div class="toggle-label" id="notif-global-label">🔔 Notifications actives</div>
-              <div class="toggle-sub">Coupe/réactive les notifs pour tout le monde</div>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="toggle-notif-global" checked onchange="toggleNotifsGlobal()">
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-        </div>
-      </div>
-
       <!-- Résultats -->
       <div class="admin-section">
         <div class="admin-section-header" onclick="toggleAdminSection('resultats')">
