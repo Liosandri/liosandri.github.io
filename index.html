@@ -264,6 +264,38 @@ input:focus,select:focus{border-color:var(--blue);}
 .admin-cmd-btn.danger{border-color:rgba(255,59,48,.3);color:var(--danger);}
 .admin-cmd-btn.danger:hover{border-color:var(--danger);}
 .score-pending-admin{padding:14px;background:rgba(255,149,0,.08);border:1px solid rgba(255,149,0,.3);border-radius:10px;margin-bottom:10px;}
+
+/* ── BOUTON NOTIF TOPBAR ── */
+.btn-notif{background:none;border:none;cursor:pointer;padding:4px;color:var(--text-muted);position:relative;display:flex;align-items:center;justify-content:center;}
+.btn-notif i{font-size:22px;transition:color .2s;}
+.btn-notif.active i{color:var(--blue);}
+.btn-notif.inactive i{color:var(--text-muted);}
+
+/* ── TOGGLE ON/OFF ── */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;}
+.toggle-label{font-size:13px;font-weight:600;color:var(--text);}
+.toggle-sub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.toggle-switch{position:relative;width:46px;height:26px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:99px;cursor:pointer;transition:background .2s;}
+.toggle-slider::before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;}
+.toggle-switch input:checked + .toggle-slider{background:var(--blue);}
+.toggle-switch input:checked + .toggle-slider::before{transform:translateX(20px);}
+.toggle-switch.toggle-green input:checked + .toggle-slider{background:var(--success);}
+
+/* ── MODE CLAIR ── */
+body.light-mode{
+  --bg-deep:#f0f2f5;--bg-card:#ffffff;--bg-card2:#e8eaed;
+  --border:#d0d4db;--text:#1a1a2e;--text-muted:#666880;
+  --silver:#555570;--silver-light:#1a1a2e;
+}
+body.light-mode .pitch-wrap{background:#2d5a2d;}
+body.light-mode .login-wrap{color:#1a1a2e;}
+body.light-mode .bottom-nav{background:var(--bg-card);}
+body.light-mode input[type=tel],body.light-mode input[type=password],body.light-mode select{background:var(--bg-card2);color:var(--text);}
+
+/* ── MASQUER BOUTON ONESIGNAL ── */
+#onesignal-bell-container,#onesignal-slidedown-container,.onesignal-bell-launcher,.onesignal-reset{display:none!important;}
 </style>
 </head>
 <body>
@@ -308,7 +340,8 @@ input:focus,select:focus{border-color:var(--blue);}
       <div class="topbar-name" id="top-name">—</div>
       <div class="topbar-pts" id="top-pts">—</div>
     </div>
-    <button onclick="doLogout()" style="border:none;background:none;cursor:pointer;color:var(--text-muted);margin-left:auto;"><i class="ti ti-logout" style="font-size:20px;"></i></button>
+    <button id="btn-notif-topbar" class="btn-notif inactive" onclick="toggleNotifPerso()" title="Notifications"><i class="ti ti-bell-off"></i></button>
+    <button onclick="doLogout()" style="border:none;background:none;cursor:pointer;color:var(--text-muted);"><i class="ti ti-logout" style="font-size:20px;"></i></button>
   </div>
 
   <div class="content" id="main-content">
@@ -387,6 +420,17 @@ input:focus,select:focus{border-color:var(--blue);}
     </div>
 
     <div id="tab-profil" style="display:none;">
+      <div class="section-label">Apparence</div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label" id="theme-label">🌙 Mode sombre</div>
+          <div class="toggle-sub">Changer l'apparence de l'app</div>
+        </div>
+        <label class="toggle-switch toggle-green">
+          <input type="checkbox" id="toggle-theme" onchange="toggleTheme()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
       <div class="section-label">Mon compte</div>
       <div class="liste-card" style="padding:16px;">
         <p style="font-size:14px;color:var(--text-muted);margin-bottom:16px;">Change ton code PIN.</p>
@@ -406,6 +450,25 @@ input:focus,select:focus{border-color:var(--blue);}
 
       <!-- Score en attente de validation -->
       <div id="admin-score-pending" style="display:none;"></div>
+
+      <!-- Notifications globales -->
+      <div class="admin-section">
+        <div class="admin-section-header" onclick="toggleAdminSection('notifs')">
+          <span>🔔 Notifications</span><i class="ti ti-chevron-down chevron"></i>
+        </div>
+        <div class="admin-section-body" id="body-notifs">
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label" id="notif-global-label">🔔 Notifications actives</div>
+              <div class="toggle-sub">Coupe/réactive les notifs pour tout le monde</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-notif-global" checked onchange="toggleNotifsGlobal()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
 
       <!-- Résultats -->
       <div class="admin-section">
@@ -567,6 +630,7 @@ function refreshData(){
 
 // ── INIT ───────────────────────────────────────────────────
 window.addEventListener('load',function(){
+  initTheme();
   initPullToRefresh();
   var session=loadSession();
   if(session){
@@ -675,6 +739,8 @@ function doLogout(){
 function enterApp(){
   document.getElementById('s-login').classList.remove('active');
   document.getElementById('s-main').classList.add('active');
+  initNotifButton();
+  initNotifGlobalToggle();
   document.getElementById('top-avatar').textContent=me.name.substring(0,2).toUpperCase();
   document.getElementById('top-name').textContent=me.name+(isAdmin?' (admin)':'');
   document.getElementById('top-pts').textContent=(me.pts||0)+' pt'+((me.pts||0)>1?'s':'')+' de rotation';
@@ -1253,6 +1319,101 @@ function doRemovePonctuel(nom){
 
 
 // ── DRAG & DROP ÉQUIPES (admin) ────────────────────────────
+// ── THEME CLAIR / SOMBRE ──────────────────────────────────
+function initTheme(){
+  var saved=localStorage.getItem('calcetto_theme');
+  if(saved==='light'){applyTheme('light');}
+  else{applyTheme('dark');}
+}
+function applyTheme(mode){
+  var toggle=document.getElementById('toggle-theme');
+  var label=document.getElementById('theme-label');
+  if(mode==='light'){
+    document.body.classList.add('light-mode');
+    if(toggle)toggle.checked=true;
+    if(label)label.textContent='☀️ Mode clair';
+    localStorage.setItem('calcetto_theme','light');
+  } else {
+    document.body.classList.remove('light-mode');
+    if(toggle)toggle.checked=false;
+    if(label)label.textContent='🌙 Mode sombre';
+    localStorage.setItem('calcetto_theme','dark');
+  }
+}
+function toggleTheme(){
+  var isLight=document.body.classList.contains('light-mode');
+  applyTheme(isLight?'dark':'light');
+}
+
+// ── NOTIF PERSO (topbar) ───────────────────────────────────
+function initNotifButton(){
+  var btn=document.getElementById('btn-notif-topbar');
+  if(!btn)return;
+  try{
+    window.OneSignalDeferred=window.OneSignalDeferred||[];
+    OneSignalDeferred.push(function(OneSignal){
+      OneSignal.User.PushSubscription.addEventListener('change',function(){updateNotifButton();});
+      updateNotifButton();
+    });
+  }catch(e){}
+}
+function updateNotifButton(){
+  var btn=document.getElementById('btn-notif-topbar');
+  if(!btn)return;
+  try{
+    OneSignalDeferred.push(function(OneSignal){
+      var isSubscribed=OneSignal.User.PushSubscription.optedIn;
+      if(isSubscribed){
+        btn.className='btn-notif active';
+        btn.innerHTML='<i class="ti ti-bell"></i>';
+        btn.title='Notifications activées';
+      } else {
+        btn.className='btn-notif inactive';
+        btn.innerHTML='<i class="ti ti-bell-off"></i>';
+        btn.title='Notifications désactivées';
+      }
+    });
+  }catch(e){}
+}
+function toggleNotifPerso(){
+  try{
+    OneSignalDeferred.push(function(OneSignal){
+      var isSubscribed=OneSignal.User.PushSubscription.optedIn;
+      if(isSubscribed){
+        OneSignal.User.PushSubscription.optOut();
+      } else {
+        OneSignal.User.PushSubscription.optIn();
+      }
+      setTimeout(updateNotifButton,800);
+    });
+  }catch(e){alert('OneSignal non disponible');}
+}
+
+// ── NOTIF GLOBALE (admin) ──────────────────────────────────
+var notifGlobalPaused=false;
+function initNotifGlobalToggle(){
+  var saved=localStorage.getItem('calcetto_notif_paused');
+  notifGlobalPaused=(saved==='true');
+  updateNotifGlobalUI();
+}
+function updateNotifGlobalUI(){
+  var toggle=document.getElementById('toggle-notif-global');
+  var label=document.getElementById('notif-global-label');
+  if(toggle)toggle.checked=!notifGlobalPaused;
+  if(label)label.textContent=notifGlobalPaused?'🔕 Notifications coupées':'🔔 Notifications actives';
+}
+function toggleNotifsGlobal(){
+  notifGlobalPaused=!notifGlobalPaused;
+  localStorage.setItem('calcetto_notif_paused',notifGlobalPaused?'true':'false');
+  updateNotifGlobalUI();
+  var action=notifGlobalPaused?'pauseNotifications':'resumeNotifications';
+  callSheet(action).then(function(res){
+    var msg=notifGlobalPaused?'🔕 Notifs coupées pour tout le monde':'🔔 Notifs réactivées pour tout le monde';
+    var el=document.getElementById('admin-cmd-result');
+    if(el){el.textContent=msg;el.style.display='block';setTimeout(function(){el.style.display='none';},3000);}
+  });
+}
+
 var teamsPendingValidation=false;
 var _dragPlayer=null,_dragTeam=null,_dragEl=null,_dragClone=null;
 
@@ -1295,21 +1456,20 @@ function enableDragDrop(){
       _dragPlayer=tok.getAttribute('data-player');
       _dragTeam=tok.getAttribute('data-team');
       _dragEl=tok;
-      // Créer un clone visuel qui suit le doigt
       _dragClone=tok.cloneNode(true);
       var r=tok.getBoundingClientRect();
-      _dragClone.style.cssText='position:fixed;z-index:9999;opacity:0.85;pointer-events:none;width:'+r.width+'px;left:'+r.left+'px;top:'+r.top+'px;';
+      _dragClone.style.cssText='position:fixed;z-index:9999;opacity:0.85;pointer-events:none;width:'+r.width+'px;left:'+r.left+'px;top:'+r.top+'px;transition:none;';
       document.body.appendChild(_dragClone);
       tok.style.opacity='0.3';
     },{passive:true});
 
     tok.addEventListener('touchmove',function(e){
-      if(!_dragClone)return;
+      if(!_dragClone||!_dragEl)return;
       e.preventDefault();
       var t=e.touches[0];
-      var r=_dragClone.getBoundingClientRect();
-      _dragClone.style.left=(t.clientX-r.width/2)+'px';
-      _dragClone.style.top=(t.clientY-r.height/2)+'px';
+      var w=parseInt(_dragClone.style.width)||44;
+      _dragClone.style.left=(t.clientX-w/2)+'px';
+      _dragClone.style.top=(t.clientY-w/2)+'px';
       // Highlight token sous le doigt
       _dragClone.style.display='none';
       var under=document.elementFromPoint(t.clientX,t.clientY);
@@ -1319,20 +1479,27 @@ function enableDragDrop(){
       if(target&&target!==_dragEl)target.classList.add('drag-over');
     },{passive:false});
 
-    tok.addEventListener('touchend',function(e){
-      if(!_dragClone)return;
-      var t=e.changedTouches[0];
-      // Supprimer le clone
-      _dragClone.remove();_dragClone=null;
-      if(_dragEl)_dragEl.style.opacity='';
+    function cleanupDrag(){
+      if(_dragClone){_dragClone.remove();_dragClone=null;}
+      if(_dragEl){_dragEl.style.opacity='';_dragEl=null;}
       document.querySelectorAll('.pitch-token').forEach(function(t2){t2.classList.remove('drag-over');});
-      // Trouver le token cible
-      _dragClone=null;
+    }
+
+    tok.addEventListener('touchend',function(e){
+      if(!_dragEl)return;
+      var t=e.changedTouches[0];
+      var savedPlayer=_dragPlayer,savedTeam=_dragTeam;
+      cleanupDrag();
       var under=document.elementFromPoint(t.clientX,t.clientY);
       var target=under?under.closest('.pitch-token'):null;
-      if(!target||target===_dragEl){_dragPlayer=null;_dragTeam=null;_dragEl=null;return;}
-      swapPlayers(_dragPlayer,_dragTeam,target.getAttribute('data-player'),target.getAttribute('data-team'));
-      _dragPlayer=null;_dragTeam=null;_dragEl=null;
+      _dragPlayer=null;_dragTeam=null;
+      if(!target||target.getAttribute('data-player')===savedPlayer)return;
+      swapPlayers(savedPlayer,savedTeam,target.getAttribute('data-player'),target.getAttribute('data-team'));
+    });
+
+    tok.addEventListener('touchcancel',function(){
+      cleanupDrag();
+      _dragPlayer=null;_dragTeam=null;
     });
   });
 }
