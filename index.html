@@ -1316,8 +1316,7 @@ function buildTeamTab(){
     mvpEligible=mvpVoting.candidates.indexOf(me.name)!==-1;
   }
   var mvpActive=mvpVoting&&mvpVoting.candidates&&!mvpClosed&&mvpEligible;
-  function makeToken(n,teamClass){
-  function makeToken(n,teamClass){
+    function makeToken(n,teamClass){
     var voteCount=mvpVotes[n]||0;
     var isMyVote=mvpHasVoted&&mvpVoting&&mvpVoting.myVote===n;
     var canVote=mvpActive&&!mvpHasVoted&&n!==me.name;
