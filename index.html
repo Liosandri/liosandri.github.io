@@ -517,10 +517,10 @@ function initPullToRefresh(){
   },{passive:true});
   content.addEventListener('touchmove',function(e){
     var dy=e.touches[0].clientY-ptrStartY;
-    if(dy>60&&content.scrollTop===0){ptrActive=true;indicator.classList.add('visible');indicator.textContent='↑ Relâche pour actualiser';}
+    if(dy>80&&content.scrollTop===0){ptrActive=true;indicator.classList.add('visible');indicator.textContent='↑ Relâche pour actualiser';}
   },{passive:true});
   content.addEventListener('touchend',function(){
-    if(ptrActive){ptrActive=false;indicator.classList.remove('visible');refreshData();}
+    if(ptrActive){ptrActive=false;indicator.classList.remove('visible');indicator.textContent='🔄 Rechargement...';indicator.classList.add('visible');setTimeout(function(){location.reload();},300);}
   });
 }
 
