@@ -561,7 +561,7 @@ function initPullToRefresh(){
   },{passive:true});
   content.addEventListener('touchmove',function(e){
     var dy=e.touches[0].clientY-ptrStartY;
-    if(dy>80&&content.scrollTop===0){ptrActive=true;indicator.classList.add('visible');indicator.textContent='↑ Relâche pour actualiser';}
+    if(dy>150&&content.scrollTop===0){ptrActive=true;indicator.classList.add('visible');indicator.textContent='↑ Relâche pour actualiser';}
   },{passive:true});
   content.addEventListener('touchend',function(){
     if(ptrActive){ptrActive=false;indicator.classList.remove('visible');indicator.textContent='🔄 Rechargement...';indicator.classList.add('visible');setTimeout(function(){location.reload();},300);}
@@ -1015,19 +1015,53 @@ function buildAdminList(){
 function buildAdminScorePending(){
   var el=document.getElementById('admin-score-pending');
   if(!el)return;
-  var pending=getPendingScore();
-  if(!pending){el.style.display='none';return;}
-  var resLabel=pending.result==='team1'?'🔵 Équipe 1 gagne':pending.result==='nul'?'🤝 Match nul (V pour tous)':'🔴 Équipe 2 gagne';
-  el.style.display='block';
-  el.innerHTML='<div class="score-pending-admin">'+
-    '<div style="font-weight:700;font-size:13px;color:var(--warn);margin-bottom:8px;">⚠️ Score en attente de validation</div>'+
-    '<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Proposé par : '+pending.by+'</div>'+
-    '<div style="font-size:14px;font-weight:700;margin-bottom:12px;">'+resLabel+'</div>'+
-    '<button class="btn-main" onclick="validatePendingScore()" style="margin-top:0;">✅ Valider et enregistrer</button>'+
-    '<button class="btn-ghost" onclick="rejectPendingScore()">❌ Rejeter</button>'+
-    '</div>';
+  // Lire depuis le serveur
+  callSheet('getPendingScore',{}).then(function(res){
+    if(!res||!res.result){el.style.display='none';return;}
+    var resLabel=res.result==='team1'?'🔵 Équipe 1 gagne':res.result==='nul'?'🤝 Match nul (V pour tous)':'🔴 Équipe 2 gagne';
+    el.style.display='block';
+    el.innerHTML='<div class="score-pending-admin">'+
+      '<div style="font-weight:700;font-size:13px;color:var(--warn);margin-bottom:8px;">⚠️ Score en attente de validation</div>'+
+      '<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Proposé par : '+res.by+'</div>'+
+      '<div style="font-size:14px;font-weight:700;margin-bottom:12px;">'+resLabel+'</div>'+
+      '<button class="btn-main" onclick="validatePendingScoreFromServer(''+res.result+'')" style="margin-top:0;">✅ Valider et enregistrer</button>'+
+      '<button class="btn-ghost" onclick="rejectPendingScoreServer()">❌ Rejeter</button>'+
+      '</div>';
+  }).catch(function(){
+    // Fallback localStorage
+    var pending=getPendingScore();
+    if(!pending){el.style.display='none';return;}
+    var resLabel=pending.result==='team1'?'🔵 Équipe 1 gagne':pending.result==='nul'?'🤝 Match nul (V pour tous)':'🔴 Équipe 2 gagne';
+    el.style.display='block';
+    el.innerHTML='<div class="score-pending-admin">'+
+      '<div style="font-weight:700;font-size:13px;color:var(--warn);margin-bottom:8px;">⚠️ Score en attente de validation</div>'+
+      '<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Proposé par : '+pending.by+'</div>'+
+      '<div style="font-size:14px;font-weight:700;margin-bottom:12px;">'+resLabel+'</div>'+
+      '<button class="btn-main" onclick="validatePendingScore()" style="margin-top:0;">✅ Valider et enregistrer</button>'+
+      '<button class="btn-ghost" onclick="rejectPendingScore()">❌ Rejeter</button>'+
+      '</div>';
+  });
 }
 
+function validatePendingScoreFromServer(result){
+  if(!teamVoting)return;
+  var results={};
+  var team1=teamVoting.team1||[];var team2=teamVoting.team2||[];
+  if(result==='nul'){team1.concat(team2).forEach(function(n){results[n]='V';});}
+  else if(result==='team1'){team1.forEach(function(n){results[n]='V';});team2.forEach(function(n){results[n]='D';});}
+  else{team2.forEach(function(n){results[n]='V';});team1.forEach(function(n){results[n]='D';});}
+  callSheet('saveResults',{results:JSON.stringify(results)})
+    .then(function(){
+      callSheet('clearPendingScore',{});
+      clearPendingScore();
+      alert('✅ Résultats validés !');location.reload();
+    }).catch(function(err){alert('Erreur: '+err.message);});
+}
+
+function rejectPendingScoreServer(){
+  if(!confirm('Rejeter le score proposé ?'))return;
+  callSheet('clearPendingScore',{}).then(function(){clearPendingScore();buildAdminScorePending();});
+}
 function getPendingScore(){try{return JSON.parse(localStorage.getItem('calcetto_pending_score')||'null');}catch(e){return null;}}
 function setPendingScore(data){localStorage.setItem('calcetto_pending_score',JSON.stringify(data));}
 function clearPendingScore(){localStorage.removeItem('calcetto_pending_score');}
@@ -1632,17 +1666,26 @@ function selectScore(result){
 }
 
 function submitScore(){
-  if(!selectedScore){alert('Sélectionne un résultat d\'abord.');return;}
+  if(!selectedScore){alert('Sélectionne un résultat d'abord.');return;}
   if(!confirm('Soumettre ce résultat pour validation ?'))return;
-  var data={result:selectedScore,by:me.name,date:new Date().toISOString()};
-  setPendingScore(data);
-  // Notif visuelle
-  buildTeamTab();
   if(isAdmin){
-    // Admin valide directement
+    var data={result:selectedScore,by:me.name,date:new Date().toISOString()};
+    setPendingScore(data);
     if(confirm('Tu es admin — valider directement les résultats ?')){validatePendingScore();}
+    return;
   }
+  var btn=document.querySelector('.score-zone .btn-main');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Envoi...';}
+  callSheet('submitScore',{player:me.name,result:selectedScore})
+    .then(function(res){
+      if(res&&res.error){alert('Erreur: '+res.error);if(btn){btn.disabled=false;btn.textContent='📤 Soumettre à l'admin';}return;}
+      var data={result:selectedScore,by:me.name,date:new Date().toISOString()};
+      setPendingScore(data);
+      buildTeamTab();
+    })
+    .catch(function(){alert('Erreur réseau');if(btn){btn.disabled=false;btn.textContent='📤 Soumettre à l'admin';}});
 }
+
 
 function buildMVPBandeauTeamTab(){
   if(!mvpVoting||!mvpVoting.candidates)return'';
