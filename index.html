@@ -1254,15 +1254,31 @@ function doRemovePonctuel(nom){
 
 // ── DRAG & DROP ÉQUIPES (admin) ────────────────────────────
 var teamsPendingValidation=false;
+var _dragPlayer=null,_dragTeam=null,_dragEl=null,_dragClone=null;
+
+function swapPlayers(draggedPlayer,draggedTeam,targetPlayer,targetTeam){
+  if(!draggedPlayer||draggedPlayer===targetPlayer)return;
+  var tv=teamVoting;
+  var i1=tv.team1.indexOf(draggedPlayer),i2=tv.team1.indexOf(targetPlayer);
+  var j1=tv.team2.indexOf(draggedPlayer),j2=tv.team2.indexOf(targetPlayer);
+  if(draggedTeam==='t1'&&targetTeam==='t2'){tv.team1.splice(i1,1,targetPlayer);tv.team2.splice(j2,1,draggedPlayer);}
+  else if(draggedTeam==='t2'&&targetTeam==='t1'){tv.team2.splice(j1,1,targetPlayer);tv.team1.splice(i2,1,draggedPlayer);}
+  else if(draggedTeam==='t1'&&targetTeam==='t1'){tv.team1.splice(i1,1,targetPlayer);tv.team1.splice(i2,1,draggedPlayer);}
+  else if(draggedTeam==='t2'&&targetTeam==='t2'){tv.team2.splice(j1,1,targetPlayer);tv.team2.splice(j2,1,draggedPlayer);}
+  teamsPendingValidation=true;
+  buildTeamTab();
+  setTimeout(enableDragDrop,100);
+}
 
 function enableDragDrop(){
   if(!isAdmin)return;
   var tokens=document.querySelectorAll('.pitch-token[draggable]');
-  var draggedPlayer=null,draggedTeam=null;
+
   tokens.forEach(function(tok){
+    // ── Desktop drag ──
     tok.addEventListener('dragstart',function(e){
-      draggedPlayer=tok.getAttribute('data-player');
-      draggedTeam=tok.getAttribute('data-team');
+      _dragPlayer=tok.getAttribute('data-player');
+      _dragTeam=tok.getAttribute('data-team');
       tok.classList.add('dragging');
       e.dataTransfer.effectAllowed='move';
     });
@@ -1271,19 +1287,52 @@ function enableDragDrop(){
     tok.addEventListener('dragleave',function(){tok.classList.remove('drag-over');});
     tok.addEventListener('drop',function(e){
       e.preventDefault();tok.classList.remove('drag-over');
-      var targetPlayer=tok.getAttribute('data-player');
-      var targetTeam=tok.getAttribute('data-team');
-      if(!draggedPlayer||draggedPlayer===targetPlayer)return;
-      var tv=teamVoting;
-      var i1=tv.team1.indexOf(draggedPlayer),i2=tv.team1.indexOf(targetPlayer);
-      var j1=tv.team2.indexOf(draggedPlayer),j2=tv.team2.indexOf(targetPlayer);
-      if(draggedTeam==='t1'&&targetTeam==='t2'){tv.team1.splice(i1,1,targetPlayer);tv.team2.splice(j2,1,draggedPlayer);}
-      else if(draggedTeam==='t2'&&targetTeam==='t1'){tv.team2.splice(j1,1,targetPlayer);tv.team1.splice(i2,1,draggedPlayer);}
-      else if(draggedTeam==='t1'&&targetTeam==='t1'){tv.team1.splice(i1,1,targetPlayer);tv.team1.splice(i2,1,draggedPlayer);}
-      else if(draggedTeam==='t2'&&targetTeam==='t2'){tv.team2.splice(j1,1,targetPlayer);tv.team2.splice(j2,1,draggedPlayer);}
-      teamsPendingValidation=true;
-      buildTeamTab();
-      setTimeout(enableDragDrop,100);
+      swapPlayers(_dragPlayer,_dragTeam,tok.getAttribute('data-player'),tok.getAttribute('data-team'));
+    });
+
+    // ── Mobile touch ──
+    tok.addEventListener('touchstart',function(e){
+      _dragPlayer=tok.getAttribute('data-player');
+      _dragTeam=tok.getAttribute('data-team');
+      _dragEl=tok;
+      // Créer un clone visuel qui suit le doigt
+      _dragClone=tok.cloneNode(true);
+      var r=tok.getBoundingClientRect();
+      _dragClone.style.cssText='position:fixed;z-index:9999;opacity:0.85;pointer-events:none;width:'+r.width+'px;left:'+r.left+'px;top:'+r.top+'px;';
+      document.body.appendChild(_dragClone);
+      tok.style.opacity='0.3';
+    },{passive:true});
+
+    tok.addEventListener('touchmove',function(e){
+      if(!_dragClone)return;
+      e.preventDefault();
+      var t=e.touches[0];
+      var r=_dragClone.getBoundingClientRect();
+      _dragClone.style.left=(t.clientX-r.width/2)+'px';
+      _dragClone.style.top=(t.clientY-r.height/2)+'px';
+      // Highlight token sous le doigt
+      _dragClone.style.display='none';
+      var under=document.elementFromPoint(t.clientX,t.clientY);
+      _dragClone.style.display='';
+      document.querySelectorAll('.pitch-token').forEach(function(t2){t2.classList.remove('drag-over');});
+      var target=under?under.closest('.pitch-token'):null;
+      if(target&&target!==_dragEl)target.classList.add('drag-over');
+    },{passive:false});
+
+    tok.addEventListener('touchend',function(e){
+      if(!_dragClone)return;
+      var t=e.changedTouches[0];
+      // Supprimer le clone
+      _dragClone.remove();_dragClone=null;
+      if(_dragEl)_dragEl.style.opacity='';
+      document.querySelectorAll('.pitch-token').forEach(function(t2){t2.classList.remove('drag-over');});
+      // Trouver le token cible
+      _dragClone=null;
+      var under=document.elementFromPoint(t.clientX,t.clientY);
+      var target=under?under.closest('.pitch-token'):null;
+      if(!target||target===_dragEl){_dragPlayer=null;_dragTeam=null;_dragEl=null;return;}
+      swapPlayers(_dragPlayer,_dragTeam,target.getAttribute('data-player'),target.getAttribute('data-team'));
+      _dragPlayer=null;_dragTeam=null;_dragEl=null;
     });
   });
 }
