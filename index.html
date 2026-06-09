@@ -1677,12 +1677,12 @@ function submitScore(){
   if(btn){btn.disabled=true;btn.textContent='⏳ Envoi...';}
   callSheet('submitScore',{player:me.name,result:selectedScore})
     .then(function(res){
-      if(res&&res.error){alert('Erreur: '+res.error);if(btn){btn.disabled=false;btn.textContent='📤 Soumettre à l'admin';}return;}
+      if(res&&res.error){alert('Erreur: '+res.error);if(btn){btn.disabled=false;btn.textContent="📤 Soumettre à l'admin";}return;}
       var data={result:selectedScore,by:me.name,date:new Date().toISOString()};
       setPendingScore(data);
       buildTeamTab();
     })
-    .catch(function(){alert('Erreur réseau');if(btn){btn.disabled=false;btn.textContent='📤 Soumettre à l'admin';}});
+    .catch(function(){alert('Erreur réseau');if(btn){btn.disabled=false;btn.textContent="📤 Soumettre à l'admin";}});
 }
 
 
