@@ -1366,8 +1366,27 @@ function initNotifButton(){
   try{
     window.OneSignalDeferred=window.OneSignalDeferred||[];
     OneSignalDeferred.push(function(OneSignal){
-      OneSignal.User.PushSubscription.addEventListener('change',function(){updateNotifButton();});
+      OneSignal.User.PushSubscription.addEventListener('change',function(){
+        updateNotifButton();
+        // Sauvegarder le nouvel ID si subscribed
+        saveOneSignalIdToServer();
+      });
       updateNotifButton();
+      // Envoyer l'ID au serveur dès le login
+      setTimeout(saveOneSignalIdToServer, 1500);
+    });
+  }catch(e){}
+}
+
+function saveOneSignalIdToServer(){
+  if(!me||!me.name)return;
+  try{
+    OneSignalDeferred.push(function(OneSignal){
+      var isSubscribed=OneSignal.User.PushSubscription.optedIn;
+      var subId=OneSignal.User.PushSubscription.id;
+      if(isSubscribed&&subId){
+        callSheet('saveOneSignalId',{player:me.name,osid:subId}).catch(function(){});
+      }
     });
   }catch(e){}
 }
