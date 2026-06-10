@@ -513,7 +513,7 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
   <nav class="bottom-nav">
     <button class="nav-item active" id="nav-ins" onclick="switchTab('inscription')"><i class="ti ti-calendar-event"></i>Match</button>
     <button class="nav-item" id="nav-sta" onclick="switchTab('stats')"><i class="ti ti-chart-bar"></i>Stats</button>
-    <button class="nav-item" id="nav-tea" onclick="switchTab('team')" style="display:none;"><i class="ti ti-users"></i>Teams & MVP</button>
+    <button class="nav-item" id="nav-tea" onclick="switchTab('team')"><i class="ti ti-users"></i>Teams & MVP</button>
     
     <button class="nav-item" id="nav-pro" onclick="switchTab('profil')"><i class="ti ti-user"></i>Profil</button>
     <button class="nav-item" id="nav-adm" onclick="switchTab('admin')" style="display:none;"><i class="ti ti-shield"></i>Admin</button>
@@ -1149,7 +1149,7 @@ function cancelMatch(){
 // ── TAB VISIBILITY ─────────────────────────────────────────
 function updateTabVisibility(){
   var navTea=document.getElementById('nav-tea');
-  if(navTea)navTea.style.display=(teamVoting&&teamVoting.team1&&teamVoting.team1.length)?'flex':'none';
+  if(navTea)navTea.style.display='flex';
 }
 
 // ── FIFA CARD ──────────────────────────────────────────────
