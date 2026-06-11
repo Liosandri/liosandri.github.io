@@ -578,17 +578,30 @@ var matchAnnule=false;
 var teamVoting=null,mvpVoting=null,fifaStatsAll={};
 var ponctuels=[],ponctuelLocked=false;
 var palmaresMVP=[];
+var _playerToken='',_adminToken='';
 
 function callSheet(action,params){
   var url=SCRIPT_URL+'?action='+encodeURIComponent(action);
   if(params)Object.keys(params).forEach(function(k){url+='&'+k+'='+encodeURIComponent(params[k]);});
+  // Injecter automatiquement les tokens selon l'action
+  var adminActions=['saveResults','cancelMatch','regenerateTeams','closeMVPVoting','resetAll','resetPonctuels',
+    'notifyInscriptionsOuvertes','notifyInscriptionsClassiques','initMVPVoting','setPonctuelLock',
+    'pauseNotifications','resumeNotifications','sendNotifLionel','sendNotifPlayer',
+    'setPlayerActive','getPlayersAdmin','addPlayer','clearPendingScore','getPendingScore'];
+  var authActions=['getData','register','voteTeam','voteMVP','changePin','submitScore',
+    'addPonctuel','removePonctuel','saveOneSignalId','checkAccountActive'];
+  if(adminActions.indexOf(action)!==-1&&_adminToken){
+    url+='&adminToken='+encodeURIComponent(_adminToken);
+  } else if(authActions.indexOf(action)!==-1&&_playerToken){
+    url+='&playerToken='+encodeURIComponent(_playerToken);
+  }
   return fetch(url).then(function(r){return r.json();});
 }
 function normalize(t){return t.replace(/[\s\-\.]/g,'');}
 
 // ── SESSION PERSISTANTE ────────────────────────────────────
-function saveSession(name,tel,admin){
-  localStorage.setItem(SESSION_KEY,JSON.stringify({name:name,tel:tel,admin:admin,ts:Date.now()}));
+function saveSession(name,tel,admin,playerToken,adminToken){
+  localStorage.setItem(SESSION_KEY,JSON.stringify({name:name,tel:tel,admin:admin,playerToken:playerToken||'',adminToken:adminToken||'',ts:Date.now()}));
 }
 function loadSession(){
   try{
@@ -598,6 +611,7 @@ function loadSession(){
   return null;
 }
 function clearSession(){localStorage.removeItem(SESSION_KEY);}
+
 
 // ── PULL TO REFRESH ────────────────────────────────────────
 var ptrStartY=0,ptrActive=false;
@@ -663,6 +677,9 @@ window.addEventListener('load',function(){
   initPullToRefresh();
   var session=loadSession();
   if(session){
+    // Restaurer les tokens depuis la session
+    _playerToken=session.playerToken||'';
+    _adminToken=session.adminToken||'';
     // Auto-login depuis session sauvegardée
     document.getElementById('loading-overlay').style.display='flex';
     callSheet('getData').then(function(dataRes){
@@ -740,8 +757,10 @@ function doLogin(){
       }
       var nomJoueur=loginRes.name.trim();
       isAdmin=loginRes.isAdmin;
+      _playerToken=loginRes.playerToken||'';
+      _adminToken=loginRes.adminToken||'';
       localStorage.setItem('calcetto_tel',currentTel);
-      saveSession(nomJoueur,currentTel,isAdmin);
+      saveSession(nomJoueur,currentTel,isAdmin,_playerToken,_adminToken);
       return callSheet('getData').then(function(dataRes){
         DB=dataRes.players||[];
         inscrits=dataRes.inscrits||[];
