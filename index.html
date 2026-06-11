@@ -500,6 +500,54 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
         </div>
       </div>
 
+      <!-- Notif individuelle -->
+      <div class="admin-section">
+        <div class="admin-section-header" onclick="toggleAdminSection('notif')">
+          <span>📣 Notif individuelle</span><i class="ti ti-chevron-down chevron"></i>
+        </div>
+        <div class="admin-section-body" id="body-notif">
+          <div class="section-label">Joueur cible</div>
+          <select id="notif-player-select" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;margin-bottom:10px;"></select>
+          <div class="section-label">Titre</div>
+          <input id="notif-title-input" type="text" placeholder="Ex: 🔔 Rappel" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;margin-bottom:10px;box-sizing:border-box;">
+          <div class="section-label">Message</div>
+          <input id="notif-msg-input" type="text" placeholder="Ex: N'oublie pas de t'inscrire !" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;margin-bottom:10px;box-sizing:border-box;">
+          <button class="admin-cmd-btn" onclick="sendNotifIndividuelle()"><i class="ti ti-send"></i> Envoyer la notif</button>
+          <div id="notif-result" style="font-size:12px;color:var(--success);margin-top:6px;display:none;"></div>
+        </div>
+      </div>
+
+      <!-- Gestion comptes joueurs -->
+      <div class="admin-section">
+        <div class="admin-section-header" onclick="toggleAdminSection('comptes')">
+          <span>👤 Gestion des comptes</span><i class="ti ti-chevron-down chevron"></i>
+        </div>
+        <div class="admin-section-body" id="body-comptes">
+          <div id="comptes-list"></div>
+        </div>
+      </div>
+
+      <!-- Ajouter un joueur -->
+      <div class="admin-section">
+        <div class="admin-section-header" onclick="toggleAdminSection('addplayer')">
+          <span>➕ Ajouter un joueur</span><i class="ti ti-chevron-down chevron"></i>
+        </div>
+        <div class="admin-section-body" id="body-addplayer">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+            <div><div class="section-label">Nom</div><input id="ap-nom" type="text" placeholder="Prénom" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;box-sizing:border-box;"></div>
+            <div><div class="section-label">Téléphone</div><input id="ap-tel" type="tel" placeholder="06..." style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;box-sizing:border-box;"></div>
+            <div><div class="section-label">PIN</div><input id="ap-pin" type="text" placeholder="4 chiffres" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;box-sizing:border-box;"></div>
+            <div><div class="section-label">ATK</div><input id="ap-atk" type="number" placeholder="50" min="1" max="99" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;box-sizing:border-box;"></div>
+            <div><div class="section-label">DEF</div><input id="ap-def" type="number" placeholder="50" min="1" max="99" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;box-sizing:border-box;"></div>
+            <div><div class="section-label">PSS</div><input id="ap-pss" type="number" placeholder="50" min="1" max="99" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;box-sizing:border-box;"></div>
+            <div><div class="section-label">STA</div><input id="ap-sta" type="number" placeholder="50" min="1" max="99" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;box-sizing:border-box;"></div>
+            <div><div class="section-label">KEP</div><input id="ap-kep" type="number" placeholder="50" min="1" max="99" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;box-sizing:border-box;"></div>
+          </div>
+          <button class="admin-cmd-btn" onclick="adminAddPlayer()"><i class="ti ti-user-plus"></i> Créer le compte</button>
+          <div id="addplayer-result" style="font-size:12px;margin-top:6px;display:none;"></div>
+        </div>
+      </div>
+
       <div id="admin-cmd-result" style="margin-top:8px;font-size:13px;text-align:center;color:var(--success);display:none;"></div>
     </div>
 
@@ -633,8 +681,22 @@ window.addEventListener('load',function(){
       isAdmin=session.admin;
       currentTel=session.tel;
       selectedStatPlayer=me;
-      document.getElementById('loading-overlay').style.display='none';
-      enterApp();
+      // Vérifier que le compte est toujours actif
+      callSheet('checkAccountActive',{name:session.name}).then(function(chk){
+        document.getElementById('loading-overlay').style.display='none';
+        if(chk&&chk.active===false){
+          clearSession();
+          document.getElementById('s-main').classList.remove('active');
+          document.getElementById('s-login').classList.add('active');
+          document.getElementById('pin-error').textContent='⛔ Ton compte a été désactivé.';
+          document.getElementById('pin-error').style.display='block';
+          return;
+        }
+        enterApp();
+      }).catch(function(){
+        document.getElementById('loading-overlay').style.display='none';
+        enterApp();
+      });
     }).catch(function(){
       document.getElementById('loading-overlay').style.display='none';
       clearSession();
@@ -1117,7 +1179,93 @@ function toggleAdminSection(id){
   var isOpen=body.classList.contains('open');
   body.classList.toggle('open',!isOpen);
   if(header)header.classList.toggle('open',!isOpen);
+  // Remplir les listes dynamiques à l'ouverture
+  if(!isOpen){
+    if(id==='notif')buildNotifSelect();
+    if(id==='comptes')buildComptesList();
+  }
 }
+
+// ── NOTIF INDIVIDUELLE ─────────────────────────────────────
+function buildNotifSelect(){
+  var sel=document.getElementById('notif-player-select');
+  if(!sel)return;
+  sel.innerHTML='';
+  var allPlayers=DB.map(function(p){return p.name;});
+  allPlayers.forEach(function(n){
+    var opt=document.createElement('option');opt.value=n;opt.textContent=n;sel.appendChild(opt);
+  });
+}
+
+function sendNotifIndividuelle(){
+  var player=document.getElementById('notif-player-select').value;
+  var title=document.getElementById('notif-title-input').value.trim();
+  var msg=document.getElementById('notif-msg-input').value.trim();
+  var resEl=document.getElementById('notif-result');
+  if(!title||!msg){resEl.style.display='block';resEl.style.color='var(--danger)';resEl.textContent='⚠️ Titre et message obligatoires.';return;}
+  resEl.style.display='none';
+  callSheet('sendNotifPlayer',{player:player,title:title,message:msg})
+    .then(function(res){
+      resEl.style.display='block';
+      resEl.style.color=res&&res.error?'var(--danger)':'var(--success)';
+      resEl.textContent=res&&res.error?('❌ '+res.error):('✅ Notif envoyée à '+player);
+    }).catch(function(){resEl.style.display='block';resEl.style.color='var(--danger)';resEl.textContent='❌ Erreur serveur';});
+}
+
+// ── GESTION COMPTES ────────────────────────────────────────
+function buildComptesList(){
+  var el=document.getElementById('comptes-list');
+  if(!el)return;
+  callSheet('getPlayersAdmin',{}).then(function(res){
+    if(!res||!res.players){el.innerHTML='<div style="color:var(--text-muted);font-size:13px;">Erreur chargement</div>';return;}
+    el.innerHTML='';
+    res.players.forEach(function(p){
+      var isActive=p.active!==false;
+      var row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:10px 4px;border-bottom:1px solid var(--border);';
+      row.innerHTML=
+        '<span style="font-size:13px;font-weight:600;color:'+(isActive?'var(--silver-light)':'var(--text-muted)')+';">'+
+        (isActive?'':'<s>')+p.name+(isActive?'':'</s>')+
+        '</span>'+
+        '<button onclick="togglePlayerActive(\''+p.name+'\','+isActive+')" style="padding:6px 14px;border-radius:8px;border:1px solid '+(isActive?'var(--danger)':'var(--success)')+';background:transparent;color:'+(isActive?'var(--danger)':'var(--success)')+';font-size:12px;font-weight:700;cursor:pointer;">'+
+        (isActive?'Désactiver':'Activer')+
+        '</button>';
+      el.appendChild(row);
+    });
+  }).catch(function(){el.innerHTML='<div style="color:var(--danger);font-size:13px;">Erreur chargement</div>';});
+}
+
+function togglePlayerActive(name,currentlyActive){
+  var newState=!currentlyActive;
+  if(!confirm((newState?'Activer':'Désactiver')+' le compte de '+name+' ?'))return;
+  callSheet('setPlayerActive',{player:name,active:String(newState)}).then(function(res){
+    if(res&&res.error){alert('❌ '+res.error);return;}
+    buildComptesList();
+  });
+}
+
+// ── AJOUTER JOUEUR ─────────────────────────────────────────
+function adminAddPlayer(){
+  var nom=document.getElementById('ap-nom').value.trim();
+  var tel=document.getElementById('ap-tel').value.trim();
+  var pin=document.getElementById('ap-pin').value.trim();
+  var atk=parseInt(document.getElementById('ap-atk').value)||50;
+  var def=parseInt(document.getElementById('ap-def').value)||50;
+  var pss=parseInt(document.getElementById('ap-pss').value)||50;
+  var sta=parseInt(document.getElementById('ap-sta').value)||50;
+  var kep=parseInt(document.getElementById('ap-kep').value)||50;
+  var resEl=document.getElementById('addplayer-result');
+  if(!nom||!tel||!pin){resEl.style.display='block';resEl.style.color='var(--danger)';resEl.textContent='⚠️ Nom, téléphone et PIN obligatoires.';return;}
+  resEl.style.display='none';
+  callSheet('addPlayer',{nom:nom,tel:tel,pin:pin,atk:atk,def:def,pss:pss,sta:sta,kep:kep})
+    .then(function(res){
+      resEl.style.display='block';
+      if(res&&res.error){resEl.style.color='var(--danger)';resEl.textContent='❌ '+res.error;return;}
+      resEl.style.color='var(--success)';resEl.textContent='✅ Joueur '+nom+' créé !';
+      ['ap-nom','ap-tel','ap-pin','ap-atk','ap-def','ap-pss','ap-sta','ap-kep'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+    }).catch(function(){resEl.style.display='block';resEl.style.color='var(--danger)';resEl.textContent='❌ Erreur serveur';});
+}
+
 
 function adminCmd(action,confirmMsg){
   if(!confirm(confirmMsg))return;
