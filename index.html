@@ -512,7 +512,8 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
           <input id="notif-title-input" type="text" placeholder="Ex: 🔔 Rappel" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;margin-bottom:10px;box-sizing:border-box;">
           <div class="section-label">Message</div>
           <input id="notif-msg-input" type="text" placeholder="Ex: N'oublie pas de t'inscrire !" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;margin-bottom:10px;box-sizing:border-box;">
-          <button class="admin-cmd-btn" onclick="sendNotifIndividuelle()"><i class="ti ti-send"></i> Envoyer la notif</button>
+          <button class="admin-cmd-btn" onclick="sendNotifIndividuelle()"><i class="ti ti-send"></i> Envoyer à ce joueur</button>
+          <button class="admin-cmd-btn" onclick="sendNotifTous()" style="margin-top:6px;background:var(--accent-secondary,#e67e22);"><i class="ti ti-speakerphone"></i> 📢 Envoyer à tous</button>
           <div id="notif-result" style="font-size:12px;color:var(--success);margin-top:6px;display:none;"></div>
         </div>
       </div>
@@ -1228,6 +1229,21 @@ function sendNotifIndividuelle(){
       resEl.style.display='block';
       resEl.style.color=res&&res.error?'var(--danger)':'var(--success)';
       resEl.textContent=res&&res.error?('❌ '+res.error):('✅ Notif envoyée à '+player);
+    }).catch(function(){resEl.style.display='block';resEl.style.color='var(--danger)';resEl.textContent='❌ Erreur serveur';});
+}
+
+function sendNotifTous(){
+  var title=document.getElementById('notif-title-input').value.trim();
+  var msg=document.getElementById('notif-msg-input').value.trim();
+  var resEl=document.getElementById('notif-result');
+  if(!title||!msg){resEl.style.display='block';resEl.style.color='var(--danger)';resEl.textContent='⚠️ Titre et message obligatoires.';return;}
+  if(!confirm('Envoyer cette notif à TOUS les joueurs ?'))return;
+  resEl.style.display='none';
+  callSheet('sendNotifAll',{title:title,message:msg})
+    .then(function(res){
+      resEl.style.display='block';
+      resEl.style.color=res&&res.error?'var(--danger)':'var(--success)';
+      resEl.textContent=res&&res.error?('❌ '+res.error):'✅ Notif envoyée à tous !';
     }).catch(function(){resEl.style.display='block';resEl.style.color='var(--danger)';resEl.textContent='❌ Erreur serveur';});
 }
 
