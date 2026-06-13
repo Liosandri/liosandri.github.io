@@ -1811,67 +1811,6 @@ function buildTeamTab(){
     voteHtml='<div style="text-align:center;font-size:13px;color:var(--text-muted);padding:8px 0;">✔ Vote enregistré</div>';
   }
 
- // Calcul des stats par équipe
-  function teamStats(team) {
-    var atk=0,def=0,pss=0,sta=0,kep=0;
-    team.forEach(function(n){
-      var s=fifaStatsAll[n]||{atk:50,def:50,pss:50,sta:50,kep:50};
-      atk+=s.atk;def+=s.def;pss+=s.pss;sta+=s.sta;kep+=s.kep;
-    });
-    return {atk:atk,def:def,pss:pss,sta:sta,kep:kep};
-  }
-  var s1=teamStats(tv.team1);
-  var s2=teamStats(tv.team2);
-  var statKeys=['atk','def','pss','sta','kep'];
-  var statLabels=['ATK','DEF','PSS','STA','KEP'];
-  }
-  function makeStatBar(label,v1,v2){
-    var total=v1+v2;
-    var pct1=total>0?Math.round(v1/total*100):50;
-    var pct2=100-pct1;
-    var diff=v1-v2;
-    var diffStr=(diff>0?'+':'')+diff;
-    return '<div style="display:flex;align-items:center;gap:0;height:28px;">'+
-      '<div style="width:36px;font-size:11px;font-weight:700;color:#fff;text-align:right;padding-right:8px;flex-shrink:0;">'+label+'</div>'+
-      '<div style="flex:1;display:flex;align-items:center;height:20px;">'+
-        '<div style="flex:1;display:flex;justify-content:flex-end;align-items:center;">'+
-          '<div style="background:#3d6db5;height:20px;width:'+pct1+'%;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;border-radius:3px 0 0 3px;min-width:32px;">'+
-            '<span style="font-size:11px;font-weight:700;color:#fff;">'+v1+'</span>'+
-          '</div>'+
-        '</div>'+
-        '<div style="flex:1;display:flex;justify-content:flex-start;align-items:center;">'+
-          '<div style="background:#b53d3d;height:20px;width:'+pct2+'%;display:flex;align-items:center;padding-left:6px;border-radius:0 3px 3px 0;min-width:32px;">'+
-            '<span style="font-size:11px;font-weight:700;color:#fff;">'+v2+'</span>'+
-          '</div>'+
-        '</div>'+
-      '</div>'+
-      '<div style="width:32px;font-size:11px;font-weight:700;text-align:left;padding-left:6px;flex-shrink:0;color:'+(diff>0?'#6fa3ef':diff<0?'#ef6f6f':'#888')+';">'+diffStr+'</div>'+
-    '</div>';
-  }
-  function makeStatBar(label,v1,v2){
-    var total=v1+v2;
-    var pct1=total>0?Math.round(v1/total*100):50;
-    var pct2=100-pct1;
-    var diff=v1-v2;
-    var diffStr=(diff>0?'+':'')+diff;
-    return '<div style="display:flex;align-items:center;gap:0;height:22px;">'+
-      '<div style="width:32px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.8);text-align:right;padding-right:6px;flex-shrink:0;">'+label+'</div>'+
-      '<div style="flex:1;display:flex;align-items:center;height:16px;">'+
-        '<div style="flex:1;display:flex;justify-content:flex-end;">'+
-          '<div style="background:#3d6db5;height:16px;width:'+pct1+'%;display:flex;align-items:center;justify-content:flex-end;padding-right:5px;border-radius:3px 0 0 3px;min-width:28px;">'+
-            '<span style="font-size:10px;font-weight:700;color:#fff;">'+v1+'</span>'+
-          '</div>'+
-        '</div>'+
-        '<div style="flex:1;display:flex;justify-content:flex-start;">'+
-          '<div style="background:#b53d3d;height:16px;width:'+pct2+'%;display:flex;align-items:center;padding-left:5px;border-radius:0 3px 3px 0;min-width:28px;">'+
-            '<span style="font-size:10px;font-weight:700;color:#fff;">'+v2+'</span>'+
-          '</div>'+
-        '</div>'+
-      '</div>'+
-      '<div style="width:30px;font-size:10px;font-weight:700;text-align:left;padding-left:5px;flex-shrink:0;color:'+(diff>0?'#6fa3ef':diff<0?'#ef6f6f':'rgba(255,255,255,0.5)')+';">'+diffStr+'</div>'+
-    '</div>';
-  }
-
   el.innerHTML=
     '<div class="pitch-wrap">'+
     '<div class="pitch-mid-line"></div>'+
@@ -1885,19 +1824,8 @@ function buildTeamTab(){
     '<div class="pitch-half">'+t1tokens+'</div>'+
     '<div class="pitch-half">'+t2tokens+'</div>'+
     '</div>'+
-    statBarsHtml+
     '</div>'+
     '<div class="vote-card">'+
-    '<div class="vote-title">🗳️ Les équipes sont équilibrées ?</div>'+
-    voteHtml+
-    '<div class="vote-bar-row"><div class="vote-bar-meta"><span>✅ OUI</span><span>'+votesOui+' ('+pctOui+'%)</span></div><div class="vote-bar-bg"><div class="vote-bar-fill vbar-t1" style="width:'+pctOui+'%"></div></div></div>'+
-    '<div class="vote-bar-row"><div class="vote-bar-meta"><span>❌ NON</span><span>'+votesNon+' ('+pctNon+'%)</span></div><div class="vote-bar-bg"><div class="vote-bar-fill vbar-t2" style="width:'+pctNon+'%"></div></div></div>'+
-    '<div style="font-size:11px;color:var(--text-muted);margin-top:6px;">'+totalVotes+' vote'+(totalVotes>1?'s':'')+' · Anonyme</div>'+
-    (isAdmin?'<button class="btn-ghost" style="margin-top:10px;" onclick="doRegenerateTeams()">🔄 Régénérer les équipes</button>':'')+
-    (isAdmin&&teamsPendingValidation?'<button id="btn-validate-teams" class="btn-main" style="margin-top:8px;background:#00c853;border:none;" onclick="doValidateTeams()">✅ Valider ces équipes</button>':'')+
-    '</div>'+
-    buildMVPBandeauTeamTab()+
-    buildScoreZone();
     '<div class="vote-title">🗳️ Les équipes sont équilibrées ?</div>'+
     voteHtml+
     '<div class="vote-bar-row"><div class="vote-bar-meta"><span>✅ OUI</span><span>'+votesOui+' ('+pctOui+'%)</span></div><div class="vote-bar-bg"><div class="vote-bar-fill vbar-t1" style="width:'+pctOui+'%"></div></div></div>'+
