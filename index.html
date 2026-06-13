@@ -1847,14 +1847,29 @@ function buildTeamTab(){
       '<div style="width:32px;font-size:11px;font-weight:700;text-align:left;padding-left:6px;flex-shrink:0;color:'+(diff>0?'#6fa3ef':diff<0?'#ef6f6f':'#888')+';">'+diffStr+'</div>'+
     '</div>';
   }
-  var statBarsHtml=
-    '<div style="background:#1a1a2e;border-radius:10px;padding:10px 8px;margin:10px 0;">'+
-    '<div style="display:flex;justify-content:space-between;padding:0 44px 6px;font-size:10px;font-weight:700;letter-spacing:.5px;color:#6fa3ef;">'+
-      '<span>ÉQUIPE 1</span>'+
-      '<span style="color:#ef6f6f;">ÉQUIPE 2</span>'+
-    '</div>'+
-    statKeys.map(function(k,i){return makeStatBar(statLabels[i],s1[k],s2[k]);}).join('')+
+  function makeStatBar(label,v1,v2){
+    var total=v1+v2;
+    var pct1=total>0?Math.round(v1/total*100):50;
+    var pct2=100-pct1;
+    var diff=v1-v2;
+    var diffStr=(diff>0?'+':'')+diff;
+    return '<div style="display:flex;align-items:center;gap:0;height:22px;">'+
+      '<div style="width:32px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.8);text-align:right;padding-right:6px;flex-shrink:0;">'+label+'</div>'+
+      '<div style="flex:1;display:flex;align-items:center;height:16px;">'+
+        '<div style="flex:1;display:flex;justify-content:flex-end;">'+
+          '<div style="background:#3d6db5;height:16px;width:'+pct1+'%;display:flex;align-items:center;justify-content:flex-end;padding-right:5px;border-radius:3px 0 0 3px;min-width:28px;">'+
+            '<span style="font-size:10px;font-weight:700;color:#fff;">'+v1+'</span>'+
+          '</div>'+
+        '</div>'+
+        '<div style="flex:1;display:flex;justify-content:flex-start;">'+
+          '<div style="background:#b53d3d;height:16px;width:'+pct2+'%;display:flex;align-items:center;padding-left:5px;border-radius:0 3px 3px 0;min-width:28px;">'+
+            '<span style="font-size:10px;font-weight:700;color:#fff;">'+v2+'</span>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="width:30px;font-size:10px;font-weight:700;text-align:left;padding-left:5px;flex-shrink:0;color:'+(diff>0?'#6fa3ef':diff<0?'#ef6f6f':'rgba(255,255,255,0.5)')+';">'+diffStr+'</div>'+
     '</div>';
+  }
 
   el.innerHTML=
     '<div class="pitch-wrap">'+
