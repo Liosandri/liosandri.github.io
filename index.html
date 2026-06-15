@@ -894,19 +894,12 @@ function validatePendingScoreFromServer(){
   else{team2.forEach(function(n){results[n]='V';});team1.forEach(function(n){results[n]='D';});}
   callSheet('saveResults',{results:JSON.stringify(results)}).then(function(){callSheet('clearPendingScore',{});clearPendingScore();alert('✅ Résultats validés !');location.reload();}).catch(function(err){alert('Erreur: '+err.message);});
 }
-function rejectPendingScoreServer(){if(!confirm('Rejeter le score proposé ?'))return;callSheet('clearPendingScore',{}).then(function(){clearPendingScore();buildAdminScorePending();});}
+function rejectPendingScoreServer(){if(!confirm('Rejeter le score proposé ?'))return;callSheet('clearPendingScore',{}).then(function(){clearPendingScore();buildAdminScorePending();}).catch(function(){clearPendingScore();buildAdminScorePending();});}
 function getPendingScore(){try{return JSON.parse(localStorage.getItem('calcetto_pending_score')||'null');}catch(e){return null;}}
 function setPendingScore(data){localStorage.setItem('calcetto_pending_score',JSON.stringify(data));}
 function clearPendingScore(){localStorage.removeItem('calcetto_pending_score');}
-function validatePendingScore(){
-  var pending=getPendingScore();if(!pending||!teamVoting)return;
-  var results={};var team1=teamVoting.team1||[];var team2=teamVoting.team2||[];
-  if(pending.result==='nul'){team1.concat(team2).forEach(function(n){results[n]='V';});}
-  else if(pending.result==='team1'){team1.forEach(function(n){results[n]='V';});team2.forEach(function(n){results[n]='D';});}
-  else{team2.forEach(function(n){results[n]='V';});team1.forEach(function(n){results[n]='D';});}
-  callSheet('saveResults',{results:JSON.stringify(results)}).then(function(){clearPendingScore();alert('✅ Résultats validés !');location.reload();}).catch(function(err){alert('Erreur: '+err.message);});
-}
-function rejectPendingScore(){if(!confirm('Rejeter le score proposé ?'))return;clearPendingScore();buildAdminScorePending();}
+// validatePendingScore supprimée - utiliser validatePendingScoreFromServer
+// rejectPendingScore remplacée par rejectPendingScoreServer (efface GAS + localStorage)
 function selRes(name,val){
   document.getElementById('la-'+name).className='rlabel'+(val===''?' sel-abs':'');
   document.getElementById('lv-'+name).className='rlabel'+(val==='V'?' sel-v':'');
@@ -1242,10 +1235,7 @@ function doVoteMVPToken(candidate){
 function doVoteTeam(vote){
   callSheet('voteTeam',{player:me.name,team:vote}).then(function(res){if(res.error){alert(res.error);return;}if(!teamVoting.voters)teamVoting.voters=[];teamVoting.voters.push(me.name);teamVoting.votesOui=res.votesOui;teamVoting.votesNon=res.votesNon;buildTeamTab();});
 }
-function doRegenerateTeams(){
-  if(!confirm('Régénérer les équipes ?'))return;
-  callSheet('regenerateTeams',{inscrits:JSON.stringify(inscrits)}).then(function(res){if(res.team1){teamVoting=res;buildTeamTab();}});
-}
+// doRegenerateTeams supprimée - bouton retiré de l'UI
 function doResetEquipes(){
   if(!confirm('Supprimer les équipes en cours ? Les votes seront perdus.'))return;
   callSheet('resetAll',{}).then(function(res){
