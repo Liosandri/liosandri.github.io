@@ -421,6 +421,8 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
         <div class="admin-section-body" id="body-cycle">
           <button class="admin-cmd-btn" onclick="adminCmd('notifyInscriptionsOuvertes','Ouvrir les inscriptions rotation (vendredi 8h) ?')"><i class="ti ti-door-enter"></i> Ouvrir inscriptions rotation</button>
           <button class="admin-cmd-btn" onclick="adminCmd('notifyInscriptionsClassiques','Fermer la rotation et ouvrir les classiques (vendredi 12h) ?')"><i class="ti ti-clock"></i> Fermer rotation / ouvrir classiques</button>
+          <button class="admin-cmd-btn" onclick="adminCmd('notifyInscriptionsLundi','Envoyer notif ponctuels lundi 12h ?')"><i class="ti ti-users"></i> Notif ponctuels (lundi 12h)</button>
+          <button class="admin-cmd-btn" onclick="adminCmd('genererEquipesJeudi','Générer les équipes jeudi 12h ?')"><i class="ti ti-ball-football"></i> Générer équipes (jeudi 12h)</button>
           <button class="admin-cmd-btn" onclick="adminCmd('initMVPVoting','Ouvrir le vote MVP (jeudi 20h) ?')"><i class="ti ti-trophy"></i> Ouvrir vote MVP</button>
           <button class="admin-cmd-btn" onclick="adminCmd('closeMVPVoting','Clore le vote MVP et annoncer le gagnant ?')"><i class="ti ti-lock"></i> Clore vote MVP</button>
         </div>
@@ -598,8 +600,6 @@ window.addEventListener('load',function(){
         applyDataRes(dataRes,false);
         var j=null;for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===me.name.toLowerCase()){j=DB[i];break;}}
         if(j)me=j;selectedStatPlayer=me;
-        // Vérifier compte actif en même temps (dans la réponse getData si account désactivé)
-        if(dataRes.accountDisabled){doLogout();return;}
         buildPlayerSelect();updateTabVisibility();
         var phaseNow=getCurrentPhase();var wasInscrit=inscrits.indexOf(me.name)!==-1;
         var savedLocal=localStorage.getItem('calcetto_presence_'+(me?me.name:''));var p;
@@ -608,6 +608,10 @@ window.addEventListener('load',function(){
         buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();
         updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();
         if(teamVoting&&teamVoting.team1)buildTeamTab();
+      }).catch(function(){});
+      // checkAccountActive en parallèle — déconnecte si compte désactivé
+      callSheet('checkAccountActive',{name:session.name}).then(function(chk){
+        if(chk&&chk.active===false){doLogout();}
       }).catch(function(){});
     } else {
       // Pas de cache : chargement classique avec overlay
