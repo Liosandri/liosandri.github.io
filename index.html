@@ -663,7 +663,7 @@ function doLogout(){
 
 function enterApp(){
   document.getElementById('s-login').classList.remove('active');document.getElementById('s-main').classList.add('active');
-  initNotifButton();initNotifGlobalToggle();
+  initNotifButton();
   document.getElementById('top-avatar').textContent=me.name.substring(0,2).toUpperCase();
   document.getElementById('top-name').textContent=me.name+(isAdmin?' (admin)':'');
   document.getElementById('top-pts').textContent=(me.pts||0)+' pt'+((me.pts||0)>1?'s':'')+' de rotation';
@@ -997,25 +997,36 @@ function isPonctuelPhaseActive(){
 }
 function isPonctuelBtnActive(){
   if(matchAnnule)return false;
-  // Recalcul depuis inscrits + ponctuels actuels (pas le cache)
-  var totalInscrits=(inscrits?inscrits.length:0);
-  var totalPonctuels=(ponctuels?ponctuels.length:0);
-  var total=totalInscrits+totalPonctuels;
+  var total=(inscrits?inscrits.length:0)+(ponctuels?ponctuels.length:0);
   if(total>=10)return false;
-  if(ponctuelLocked)return false;
-  if(isAdmin)return true; // Admin peut toujours ajouter si pas locked et < 10
-  if(!isPonctuelPhaseActive())return false;
-  return true;
+  // ponctuelLocked = true signifie que l'admin a FORCÉ l'ouverture anticipée
+  if(ponctuelLocked)return true;
+  // Sinon : ouverture automatique selon la fenêtre horaire
+  return isPonctuelPhaseActive();
 }
 function updatePonctuelZone(){
   var el=document.getElementById('ponctuel-zone');if(!el)return;
-  var active=isPonctuelBtnActive();var lockIcon=ponctuelLocked?'ti-lock':'ti-lock-open';var lockTitle=ponctuelLocked?'Déverrouiller ajout ponctuel':'Verrouiller ajout ponctuel';
+  var active=isPonctuelBtnActive();
+  // Bouton cadenas admin : force l'ouverture anticipée (ex: samedi si peu d'inscrits)
+  var lockBtn=isAdmin?'<button class="btn-lock'+(ponctuelLocked?' unlocked':'')+'" title="'+(ponctuelLocked?'Annuler ouverture forcée':'Forcer ouverture ponctuels')+'" onclick="doTogglePonctuelLock()"><i class="ti '+(ponctuelLocked?'ti-lock-open':'ti-lock')+'"></i></button>':'';
   var ponctHtml='';
-  if(ponctuels&&ponctuels.length>0){ponctHtml='<div style="margin-bottom:8px;display:flex;flex-wrap:wrap;">';ponctuels.forEach(function(p){var nom=typeof p==='object'?p.nom:p;var heure=typeof p==='object'&&p.heure?' <span style="font-weight:400;opacity:.7;">'+p.heure+'</span>':'';ponctHtml+='<span class="ponctuel-tag">'+nom+heure+(isAdmin?'<button onclick="doRemovePonctuel(&quot;'+nom+'&quot;)" title="Retirer">×</button>':'')+'</span>';});ponctHtml+='</div>';}
-  var lockBtn=isAdmin?'<button class="btn-lock'+(ponctuelLocked?' unlocked':'')+'" title="'+lockTitle+'" onclick="doTogglePonctuelLock()"><i class="ti '+lockIcon+'"></i></button>':'';
+  if(ponctuels&&ponctuels.length>0){
+    ponctHtml='<div style="margin-bottom:8px;display:flex;flex-wrap:wrap;">';
+    ponctuels.forEach(function(p){
+      var nom=typeof p==='object'?p.nom:p;
+      var heure=typeof p==='object'&&p.heure?' <span style="font-weight:400;opacity:.7;">'+p.heure+'</span>':'';
+      ponctHtml+='<span class="ponctuel-tag">'+nom+heure+(isAdmin?'<button onclick="doRemovePonctuel(&quot;'+nom+'&quot;)" title="Retirer">×</button>':'')+'</span>';
+    });
+    ponctHtml+='</div>';
+  }
   el.innerHTML=ponctHtml+'<div class="btn-ponctuel-row"><button class="btn-ponctuel'+(active?' active':'')+'" '+(active?'':'disabled')+' onclick="openPonctuelModal()"><i class="ti ti-user-plus"></i> +1 Joueur ponctuel</button>'+lockBtn+'</div>';
 }
-function doTogglePonctuelLock(){var newLocked=!ponctuelLocked;callSheet('setPonctuelLock',{locked:String(newLocked)}).then(function(res){if(res.success){ponctuelLocked=newLocked;updatePonctuelZone();}});}
+function doTogglePonctuelLock(){
+  var newLocked=!ponctuelLocked;
+  callSheet('setPonctuelLock',{locked:String(newLocked)}).then(function(res){
+    if(res.success){ponctuelLocked=newLocked;updatePonctuelZone();}
+  });
+}
 function openPonctuelModal(){
   if(!isPonctuelBtnActive())return;
   var overlay=document.createElement('div');overlay.className='modal-overlay';overlay.id='ponctuel-modal';
@@ -1057,10 +1068,7 @@ function updateNotifButton(){
 function toggleNotifPerso(){
   try{OneSignalDeferred.push(function(OneSignal){var isSubscribed=OneSignal.User.PushSubscription.optedIn;if(isSubscribed){OneSignal.User.PushSubscription.optOut();}else{OneSignal.User.PushSubscription.optIn();}setTimeout(updateNotifButton,800);});}catch(e){alert('OneSignal non disponible');}
 }
-var notifGlobalPaused=false;
-function initNotifGlobalToggle(){var saved=localStorage.getItem('calcetto_notif_paused');notifGlobalPaused=(saved==='true');updateNotifGlobalUI();}
-function updateNotifGlobalUI(){var toggle=document.getElementById('toggle-notif-global');var label=document.getElementById('notif-global-label');if(toggle)toggle.checked=!notifGlobalPaused;if(label)label.textContent=notifGlobalPaused?'🔕 Notifications coupées':'🔔 Notifications actives';}
-function toggleNotifsGlobal(){notifGlobalPaused=!notifGlobalPaused;localStorage.setItem('calcetto_notif_paused',notifGlobalPaused?'true':'false');updateNotifGlobalUI();var action=notifGlobalPaused?'pauseNotifications':'resumeNotifications';callSheet(action).then(function(){var msg=notifGlobalPaused?'🔕 Notifs coupées pour tout le monde':'🔔 Notifs réactivées pour tout le monde';var el=document.getElementById('admin-cmd-result');if(el){el.textContent=msg;el.style.display='block';setTimeout(function(){el.style.display='none';},3000);}});}
+// pauseNotifications/resumeNotifications gérés côté GAS via adminCmd
 
 var teamsPendingValidation=false;
 var _dragPlayer=null,_dragTeam=null,_dragEl=null,_dragClone=null;
