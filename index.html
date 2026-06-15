@@ -706,7 +706,9 @@ function doChangePin(){
 }
 
 function getCurrentPhase(){
-  var now=new Date(),day=now.getDay(),h=now.getHours()+now.getMinutes()/60;
+  var now=new Date();
+  var paris=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Paris'}));
+  var day=paris.getDay(),h=paris.getHours()+paris.getMinutes()/60;
   if(day===4){return h<12?'open_classic':'closed';}
   else if(day===5){if(h<8)return 'closed';else if(h<12)return 'open_rotation';else return 'open_classic';}
   return 'open_classic';
@@ -739,27 +741,40 @@ function setPresence(val,silent){
     if(phase==='closed'){alert("Les inscriptions sont fermées jusqu'à vendredi 8h00.");return;}
     if(phase==='open_classic'&&val==='present'&&inscrits.length>=10&&inscrits.indexOf(me.name)===-1){alert("Le groupe est complet (10/10). Tu ne peux plus t'inscrire.");return;}
   }
-  presence=val;if(!silent)localStorage.setItem('calcetto_presence_'+(me?me.name:''),val);
+  // Optimistic UI : appliquer immédiatement sans attendre GAS
+  presence=val;
+  if(!silent)localStorage.setItem('calcetto_presence_'+(me?me.name:''),val);
+  if(val==='present'){if(inscrits.indexOf(me.name)===-1)inscrits.push(me.name);}
+  else{inscrits=inscrits.filter(function(n){return n!==me.name;});}
+  _applyPresenceUI(val);
+  updateBannerZone();updateListeZone();updateBoutons();updatePonctuelZone();
+  if(!silent){
+    var status=val==='present'?'present':'absent';
+    callSheet('register',{player:me.name,status:status}).then(function(res){
+      if(res&&res.inscrits){
+        inscrits=res.inscrits;
+        // Corriger si le serveur a une réponse différente (ex: exclu par rotation)
+        var confirmedPresent=inscrits.indexOf(me.name)!==-1;
+        if(val==='present'&&!confirmedPresent){presence='absent';_applyPresenceUI('absent');}
+        else{_applyPresenceUI(presence);}
+        if(res.teamVoting)teamVoting=res.teamVoting;
+      }
+      updateListeZone();updateBoutons();updateBannerZone();updatePonctuelZone();
+    }).catch(function(){
+      // En cas d'erreur réseau, revenir à l'état précédent
+      var prev=val==='present'?'absent':'present';
+      presence=prev;
+      if(prev==='present'){if(inscrits.indexOf(me.name)===-1)inscrits.push(me.name);}
+      else{inscrits=inscrits.filter(function(n){return n!==me.name;});}
+      _applyPresenceUI(prev);
+      updateListeZone();updateBoutons();updateBannerZone();
+    });
+  }
+}
+function _applyPresenceUI(val){
   document.getElementById('btn-present').classList.toggle('selected',val==='present');
   document.getElementById('btn-absent').classList.toggle('selected',val==='absent');
   document.getElementById('absent-banner').classList.toggle('show',val==='absent');
-  if(val==='present'){
-    if(inscrits.indexOf(me.name)===-1)inscrits.push(me.name);
-    if(!silent){
-      callSheet('register',{player:me.name,status:'present'}).then(function(res){
-        if(res&&res.inscrits){
-          var phase=getCurrentPhase();
-          if(phase==='open_rotation'){inscrits=res.inscrits;document.getElementById('btn-present').classList.add('selected');document.getElementById('btn-absent').classList.remove('selected');document.getElementById('absent-banner').classList.remove('show');}
-          else{inscrits=res.inscrits;var wasKept=inscrits.indexOf(me.name)!==-1;if(!wasKept){presence='absent';}document.getElementById('btn-present').classList.toggle('selected',wasKept);document.getElementById('btn-absent').classList.toggle('selected',!wasKept);document.getElementById('absent-banner').classList.toggle('show',!wasKept);}
-        }
-        updateListeZone();updateBoutons();updateBannerZone();
-      });
-    }
-  } else {
-    inscrits=inscrits.filter(function(n){return n!==me.name;});
-    if(!silent){callSheet('register',{player:me.name,status:'absent'}).then(function(res){if(res&&res.inscrits){inscrits=res.inscrits;}updateListeZone();updateBoutons();});}
-  }
-  updateBannerZone();updateListeZone();updateBoutons();
 }
 
 function updateBannerZone(){
@@ -970,8 +985,28 @@ function buildFifaCard(player){
   return'<div class="section-label">Profil FIFA</div><div class="fifa-card"><div class="fifa-card-header"><div class="fifa-ovr"><span class="fifa-ovr-num">'+overall+'</span><span class="fifa-ovr-lbl">OVR</span></div><div class="fifa-player-info"><div class="fifa-player-name">'+player.name+' <span style="font-size:18px;letter-spacing:2px;">'+starsHtml+'</span></div></div>'+mvpBadge+'</div><div class="fifa-stats-row">'+statsHtml+'</div></div>';
 }
 
-function isPonctuelPhaseActive(){var now=new Date(),day=now.getDay(),h=now.getHours()+now.getMinutes()/60;if(day===1&&h>=12)return true;if(day===2||day===3)return true;if(day===4&&h<12)return true;return false;}
-function isPonctuelBtnActive(){if(matchAnnule)return false;var total=(inscrits?inscrits.length:0)+(ponctuels?ponctuels.length:0);if(total>=10)return false;if(isAdmin&&!ponctuelLocked)return true;if(ponctuelLocked)return false;if(!isPonctuelPhaseActive())return false;return true;}
+function isPonctuelPhaseActive(){
+  // Utilise Europe/Paris pour éviter les bugs timezone
+  var now=new Date();
+  var paris=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Paris'}));
+  var day=paris.getDay(),h=paris.getHours()+paris.getMinutes()/60;
+  if(day===1&&h>=12)return true;  // Lundi 12h+
+  if(day===2||day===3)return true; // Mardi, Mercredi
+  if(day===4&&h<12)return true;    // Jeudi avant 12h
+  return false;
+}
+function isPonctuelBtnActive(){
+  if(matchAnnule)return false;
+  // Recalcul depuis inscrits + ponctuels actuels (pas le cache)
+  var totalInscrits=(inscrits?inscrits.length:0);
+  var totalPonctuels=(ponctuels?ponctuels.length:0);
+  var total=totalInscrits+totalPonctuels;
+  if(total>=10)return false;
+  if(ponctuelLocked)return false;
+  if(isAdmin)return true; // Admin peut toujours ajouter si pas locked et < 10
+  if(!isPonctuelPhaseActive())return false;
+  return true;
+}
 function updatePonctuelZone(){
   var el=document.getElementById('ponctuel-zone');if(!el)return;
   var active=isPonctuelBtnActive();var lockIcon=ponctuelLocked?'ti-lock':'ti-lock-open';var lockTitle=ponctuelLocked?'Déverrouiller ajout ponctuel':'Verrouiller ajout ponctuel';
