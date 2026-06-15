@@ -432,6 +432,7 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
           <span>🧹 Reset</span><i class="ti ti-chevron-down chevron"></i>
         </div>
         <div class="admin-section-body" id="body-reset">
+          <button class="admin-cmd-btn danger" onclick="doResetEquipes()"><i class="ti ti-users-minus"></i> 🗑️ Supprimer les équipes en cours</button>
           <button class="admin-cmd-btn danger" onclick="adminCmd('resetAll','Reset complet : vider matchAnnule, teamVoting, mvpVoting, ponctuelLocked ?')"><i class="ti ti-trash"></i> Reset complet</button>
           <button class="admin-cmd-btn danger" onclick="adminCmd('resetPonctuels','Vider uniquement les joueurs ponctuels de cette semaine ?')"><i class="ti ti-user-minus"></i> Reset ponctuels uniquement</button>
         </div>
@@ -1167,8 +1168,8 @@ function buildTeamTab(){
   var statBarsHtml=
     '<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:88%;z-index:3;background:rgba(0,0,0,0.45);border-radius:8px;padding:6px 8px;">'+
     '<div style="display:flex;justify-content:space-between;padding:0 44px 4px;font-size:10px;font-weight:700;letter-spacing:.5px;">'+
-      '<span style="color:#6fa3ef;">ÉQUIPE 1</span>'+
-      '<span style="color:#ef6f6f;">ÉQUIPE 2</span>'+
+      '<span style="color:#6fa3ef;">ÉQUIPE 1 · OVR '+Math.round((s1.atk+s1.def+s1.pss+s1.sta+s1.kep)/tv.team1.length)+'</span>'+
+      '<span style="color:#ef6f6f;">OVR '+Math.round((s2.atk+s2.def+s2.pss+s2.sta+s2.kep)/tv.team2.length)+' · ÉQUIPE 2</span>'+
     '</div>'+
     statKeys.map(function(k,i){return makeStatBar(statLabels[i],s1[k],s2[k]);}).join('')+
     '</div>';
@@ -1194,7 +1195,7 @@ function buildTeamTab(){
     '<div class="vote-bar-row"><div class="vote-bar-meta"><span>✅ OUI</span><span>'+votesOui+' ('+pctOui+'%)</span></div><div class="vote-bar-bg"><div class="vote-bar-fill vbar-t1" style="width:'+pctOui+'%"></div></div></div>'+
     '<div class="vote-bar-row"><div class="vote-bar-meta"><span>❌ NON</span><span>'+votesNon+' ('+pctNon+'%)</span></div><div class="vote-bar-bg"><div class="vote-bar-fill vbar-t2" style="width:'+pctNon+'%"></div></div></div>'+
     '<div style="font-size:11px;color:var(--text-muted);margin-top:6px;">'+totalVotes+' vote'+(totalVotes>1?'s':'')+' · Anonyme</div>'+
-    (isAdmin?'<button class="btn-ghost" style="margin-top:10px;" onclick="doRegenerateTeams()">🔄 Régénérer les équipes</button>':'')+
+    // Bouton régénérer supprimé - utiliser Admin > Reset équipes+
     (isAdmin&&teamsPendingValidation?'<button id="btn-validate-teams" class="btn-main" style="margin-top:8px;background:#00c853;border:none;" onclick="doValidateTeams()">✅ Valider ces équipes</button>':'')+
     '</div>'+
     buildMVPBandeauTeamTab()+
@@ -1244,6 +1245,17 @@ function doVoteTeam(vote){
 function doRegenerateTeams(){
   if(!confirm('Régénérer les équipes ?'))return;
   callSheet('regenerateTeams',{inscrits:JSON.stringify(inscrits)}).then(function(res){if(res.team1){teamVoting=res;buildTeamTab();}});
+}
+function doResetEquipes(){
+  if(!confirm('Supprimer les équipes en cours ? Les votes seront perdus.'))return;
+  callSheet('resetAll',{}).then(function(res){
+    if(res.error){alert('Erreur: '+res.error);return;}
+    teamVoting=null;mvpVoting=null;
+    localStorage.removeItem('calcetto_data_cache');
+    buildTeamTab();
+    var el=document.getElementById('admin-cmd-result');
+    if(el){el.textContent='✅ Équipes supprimées';el.style.color='var(--success)';el.style.display='block';setTimeout(function(){el.style.display='none';},3000);}
+  });
 }
 
 function buildMVPTab(){
