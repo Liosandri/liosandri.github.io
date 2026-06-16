@@ -9,6 +9,8 @@
 <meta name="theme-color" content="#0a0a1a">
 <title>Calcetto du jeudi</title>
 <link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon.svg">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script>
   // OneSignal chargé en différé après l'app pour ne pas bloquer le rendu
@@ -263,15 +265,27 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
 <div id="s-login" class="screen active">
   <div class="login-wrap">
     <div class="logo-zone">
-      <svg width="80" height="80" viewBox="0 0 80 80" fill="none" style="display:block;margin:0 auto 1rem;">
-        <circle cx="40" cy="40" r="38" fill="#0a0a1a" stroke="#1e90ff" stroke-width="2"/>
-        <circle cx="40" cy="40" r="30" fill="none" stroke="#2a2a50" stroke-width="1"/>
-        <polygon points="40,10 47,30 68,30 52,43 58,63 40,51 22,63 28,43 12,30 33,30" fill="none" stroke="#d4af37" stroke-width="1.5" stroke-linejoin="round"/>
-        <polygon points="40,18 45,32 60,32 48,41 53,55 40,47 27,55 32,41 20,32 35,32" fill="#1e90ff" fill-opacity="0.15" stroke="#1e90ff" stroke-width="1" stroke-linejoin="round"/>
-        <circle cx="40" cy="40" r="4" fill="#d4af37"/>
+<svg width="140" height="150" viewBox="0 0 680 720" style="display:block;margin:0 auto 0.5rem;">
+        <rect x="0" y="0" width="680" height="720" fill="none"/>
+        <polygon points="340,118 358,172 414,172 370,205 386,260 340,226 294,260 310,205 266,172 322,172" fill="#e8e8f0"/>
+        <polygon points="340,60 348,86 376,86 354,102 362,128 340,112 318,128 326,102 304,86 332,86" fill="#e8e8f0"/>
+        <polygon points="420,88 428,114 456,114 434,130 442,156 420,140 398,156 406,130 384,114 412,114" fill="#e8e8f0"/>
+        <polygon points="474,158 482,184 510,184 488,200 496,226 474,210 452,226 460,200 438,184 466,184" fill="#e8e8f0"/>
+        <polygon points="450,248 458,274 486,274 464,290 472,316 450,300 428,316 436,290 414,274 442,274" fill="#e8e8f0"/>
+        <polygon points="390,308 398,334 426,334 404,350 412,376 390,360 368,376 376,350 354,334 382,334" fill="#e8e8f0"/>
+        <polygon points="290,308 298,334 326,334 304,350 312,376 290,360 268,376 276,350 254,334 282,334" fill="#e8e8f0"/>
+        <polygon points="230,248 238,274 266,274 244,290 252,316 230,300 208,316 216,290 194,274 222,274" fill="#e8e8f0"/>
+        <polygon points="206,158 214,184 242,184 220,200 228,226 206,210 184,226 192,200 170,184 198,184" fill="#e8e8f0"/>
+        <polygon points="260,88 268,114 296,114 274,130 282,156 260,140 238,156 246,130 224,114 252,114" fill="#e8e8f0"/>
+        <line x1="170" y1="428" x2="246" y2="428" stroke="#e8e8f0" stroke-width="2"/>
+        <text x="340" y="434" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#e8e8f0" letter-spacing="10">LDC</text>
+        <line x1="434" y1="428" x2="510" y2="428" stroke="#e8e8f0" stroke-width="2"/>
+        <text x="340" y="512" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="72" font-weight="900" fill="#e8e8f0" letter-spacing="-1">CALCETTO</text>
+        <line x1="60" y1="548" x2="240" y2="548" stroke="#e8e8f0" stroke-width="2"/>
+        <line x1="440" y1="548" x2="620" y2="548" stroke="#e8e8f0" stroke-width="2"/>
+        <text x="340" y="582" text-anchor="middle" font-family="Arial,sans-serif" font-size="44" font-weight="700" fill="#e8e8f0" letter-spacing="6">LEAGUE</text>
+        <line x1="60" y1="596" x2="620" y2="596" stroke="#e8e8f0" stroke-width="2"/>
       </svg>
-      <p class="app-title">Calcetto</p>
-      <p class="app-sub">Jeudi League</p>
     </div>
     <div id="step-tel">
       <p class="field-label" style="margin-bottom:6px;">Numéro de téléphone</p>
@@ -823,7 +837,26 @@ function updateListeZone(){
   sorted.forEach(function(name,i){
     var pts=0;for(var j=0;j<DB.length;j++){if(DB[j].name===name)pts=DB[j].pts||0;}
     var isPonctuel=ponctuelsNoms.indexOf(name)!==-1;var exclu=isWindowOpen()&&tousInscrits.length>10&&i<tousInscrits.length-10;var isMe=name===me.name;
-    html+='<div class="player-row"><div class="player-avatar" style="'+(isMe?'border:2px solid var(--blue);':'')+(isPonctuel?'background:rgba(30,144,255,.15);':'')+'">'+name.substring(0,2).toUpperCase()+'</div><span class="player-name">'+name+(isMe?' <span style="font-size:11px;color:var(--text-muted);">(moi)</span>':'')+' '+(isPonctuel?'<span style="font-size:10px;color:var(--blue);font-weight:600;">PONCTUEL</span>':'')+'</span><span style="font-size:12px;color:var(--text-muted);margin-right:6px;">'+(!isPonctuel?pts+' pts':'')+'</span>'+(exclu?'<span class="pill pill-red">Exclu</span>':'<span class="pill pill-green">OK</span>')+'</div>';
+    if(isPonctuel){
+      // Trouver les infos du ponctuel (OVR + ajoutePar)
+      var ponctData=ponctuels.find(function(p){return(typeof p==='object'?p.nom:p)===name;})||{};
+      var ponctOvr='';
+      if(fifaStatsAll&&fifaStatsAll[name]){var s=fifaStatsAll[name];ponctOvr=Math.round((s.atk+s.def+s.pss+s.sta+s.kep)/5);}
+      var ponctBy=ponctData.ajoutePar?ponctData.ajoutePar.substring(0,2).toUpperCase():'';
+      html+='<div class="player-row"><div class="player-avatar" style="background:rgba(30,144,255,.15);border:1px solid rgba(30,144,255,.3);">'+name.substring(0,2).toUpperCase()+'</div>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:14px;color:var(--silver-light);">'+name+'</div>'+
+          '<div style="display:flex;align-items:center;gap:5px;margin-top:2px;">'+
+            '<span style="font-size:10px;font-weight:700;color:var(--blue);background:rgba(30,144,255,.12);border:1px solid rgba(30,144,255,.2);border-radius:99px;padding:1px 6px;">PONCTUEL</span>'+
+            (ponctOvr?'<span style="font-size:10px;color:var(--text-muted);">OVR '+ponctOvr+'</span>':'')+
+            (ponctBy?'<span style="font-size:10px;color:var(--text-muted);">· par '+ponctBy+'</span>':'')+
+          '</div>'+
+        '</div>'+
+        (exclu?'<span class="pill pill-red">Exclu</span>':'<span class="pill pill-green">OK</span>')+
+      '</div>';
+    } else {
+      html+='<div class="player-row"><div class="player-avatar" style="'+(isMe?'border:2px solid var(--blue);':'')+'">'+name.substring(0,2).toUpperCase()+'</div><span class="player-name">'+name+(isMe?' <span style="font-size:11px;color:var(--text-muted);">(moi)</span>':'')+'</span><span style="font-size:12px;color:var(--text-muted);margin-right:6px;">'+pts+' pts</span>'+(exclu?'<span class="pill pill-red">Exclu</span>':'<span class="pill pill-green">OK</span>')+'</div>';
+    }
   });
   el.innerHTML=html+'</div>';
 }
@@ -1060,7 +1093,7 @@ function doAddPonctuel(){
   if(!nom){errEl.textContent='Le nom est obligatoire.';errEl.style.display='block';return;}
   var stats=[atk,def,pss,sta,kep];for(var i=0;i<stats.length;i++){if(!stats[i]||stats[i]<1||stats[i]>99){errEl.textContent='Toutes les stats sont obligatoires (1–99).';errEl.style.display='block';return;}}
   var btn=document.querySelector('#ponctuel-modal .btn-main');btn.textContent='Inscription...';btn.disabled=true;
-  callSheet('addPonctuel',{nom:nom,atk:atk,def:def,pss:pss,sta:sta,kep:kep}).then(function(res){if(res.error){errEl.textContent=res.error;errEl.style.display='block';btn.textContent='Inscrire le joueur';btn.disabled=false;return;}ponctuels=res.ponctuels||ponctuels;if(res.teamVoting)teamVoting=res.teamVoting;closePonctuelModal();updatePonctuelZone();updateBoutons();updateListeZone();if(teamVoting&&teamVoting.team1)buildTeamTab();}).catch(function(){errEl.textContent='Erreur serveur.';errEl.style.display='block';btn.textContent='Inscrire le joueur';btn.disabled=false;});
+  callSheet('addPonctuel',{nom:nom,atk:atk,def:def,pss:pss,sta:sta,kep:kep,ajoutePar:me?me.name:''}).then(function(res){if(res.error){errEl.textContent=res.error;errEl.style.display='block';btn.textContent='Inscrire le joueur';btn.disabled=false;return;}ponctuels=res.ponctuels||ponctuels;if(res.teamVoting)teamVoting=res.teamVoting;closePonctuelModal();updatePonctuelZone();updateBoutons();updateListeZone();if(teamVoting&&teamVoting.team1)buildTeamTab();}).catch(function(){errEl.textContent='Erreur serveur.';errEl.style.display='block';btn.textContent='Inscrire le joueur';btn.disabled=false;});
 }
 function doRemovePonctuel(nom){if(!confirm('Retirer '+nom+' de la liste ?'))return;callSheet('removePonctuel',{nom:nom}).then(function(res){if(res.error){alert(res.error);return;}ponctuels=res.ponctuels||[];updatePonctuelZone();updateBoutons();});}
 
