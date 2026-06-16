@@ -502,8 +502,8 @@ var SESSION_KEY='calcetto_session';
 var SESSION_DURATION=30*24*60*60*1000;
 var CACHE_KEY='calcetto_data_cache';
 var CACHE_FIFA_KEY='calcetto_fifa_cache';
-var CACHE_TTL=15*60*1000;
-var CACHE_FIFA_TTL=24*60*60*1000;
+var CACHE_TTL=6*60*60*1000; // 6h pour l'historique et palmarès
+var CACHE_FIFA_TTL=24*60*60*1000; // 24h pour les stats FIFA
 var DB=[],me=null,isAdmin=false,presence='absent',inscrits=[];
 var currentPeriod='all',currentPeriodClasse='all',currentTel='';
 var selectedStatPlayer=null;
@@ -518,12 +518,33 @@ function loadDataCache(){try{var c=JSON.parse(localStorage.getItem(CACHE_KEY)||'
 function saveFifaCache(d){try{localStorage.setItem(CACHE_FIFA_KEY,JSON.stringify({data:d,ts:Date.now()}));}catch(e){}}
 function loadFifaCache(){try{var c=JSON.parse(localStorage.getItem(CACHE_FIFA_KEY)||'null');if(c&&Date.now()-c.ts<CACHE_FIFA_TTL)return c.data;}catch(e){}return null;}
 function applyDataRes(dataRes,fromCache){
-  DB=dataRes.players||[];inscrits=dataRes.inscrits||[];matchAnnule=dataRes.matchAnnule||false;
-  teamVoting=dataRes.teamVoting||null;mvpVoting=dataRes.mvpVoting||null;
-  if(!fromCache&&dataRes.fifaStats&&Object.keys(dataRes.fifaStats).length>0){fifaStatsAll=dataRes.fifaStats;saveFifaCache(fifaStatsAll);}
-  else if(Object.keys(fifaStatsAll).length===0){var fc=loadFifaCache();fifaStatsAll=fc||(dataRes.fifaStats||{});}
-  ponctuels=dataRes.ponctuels||[];ponctuelLocked=dataRes.ponctuelLocked||false;palmaresMVP=dataRes.palmaresMVP||[];
-  if(!fromCache)saveDataCache(dataRes);
+  // Données statiques (mises en cache) : historique, joueurs, palmares
+  DB=dataRes.players||[];
+  palmaresMVP=dataRes.palmaresMVP||[];
+  // Données dynamiques (jamais en cache) : toujours fraîches depuis GAS
+  if(!fromCache){
+    inscrits=dataRes.inscrits||[];
+    matchAnnule=dataRes.matchAnnule||false;
+    teamVoting=dataRes.teamVoting||null;
+    mvpVoting=dataRes.mvpVoting||null;
+    ponctuels=dataRes.ponctuels||[];
+    ponctuelLocked=dataRes.ponctuelLocked||false;
+  }
+  // FIFA stats : cache 24h
+  if(!fromCache&&dataRes.fifaStats&&Object.keys(dataRes.fifaStats).length>0){
+    fifaStatsAll=dataRes.fifaStats;saveFifaCache(fifaStatsAll);
+  } else if(Object.keys(fifaStatsAll).length===0){
+    var fc=loadFifaCache();fifaStatsAll=fc||(dataRes.fifaStats||{});
+  }
+  // Vérifier si un reset admin a eu lieu depuis le dernier cache
+  if(!fromCache&&dataRes.lastUpdated){
+    var cached=null;try{cached=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');}catch(e){}
+    if(cached&&cached.data&&cached.data.lastUpdated&&dataRes.lastUpdated!==cached.data.lastUpdated){
+      // Données fraîches différentes du cache → vider le cache
+      localStorage.removeItem(CACHE_KEY);
+    }
+    saveDataCache(dataRes);
+  }
 }
 
 function callSheet(action,params){
@@ -1160,9 +1181,10 @@ function buildTeamTab(){
   }
   var statBarsHtml=
     '<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:88%;z-index:3;background:rgba(0,0,0,0.45);border-radius:8px;padding:6px 8px;">'+
-    '<div style="display:flex;justify-content:space-between;padding:0 44px 4px;font-size:10px;font-weight:700;letter-spacing:.5px;">'+
-      '<span style="color:#6fa3ef;">ÉQUIPE 1 · OVR '+Math.round((s1.atk+s1.def+s1.pss+s1.sta+s1.kep)/tv.team1.length)+'</span>'+
-      '<span style="color:#ef6f6f;">OVR '+Math.round((s2.atk+s2.def+s2.pss+s2.sta+s2.kep)/tv.team2.length)+' · ÉQUIPE 2</span>'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 4px;font-size:10px;font-weight:700;letter-spacing:.3px;white-space:nowrap;">'+
+      '<span style="color:#6fa3ef;flex:1;text-align:left;">Éq.1 OVR '+Math.round((s1.atk+s1.def+s1.pss+s1.sta+s1.kep)/tv.team1.length)+'</span>'+
+      '<span style="color:rgba(255,255,255,0.4);flex:0;padding:0 4px;">vs</span>'+
+      '<span style="color:#ef6f6f;flex:1;text-align:right;">OVR '+Math.round((s2.atk+s2.def+s2.pss+s2.sta+s2.kep)/tv.team2.length)+' Éq.2</span>'+
     '</div>'+
     statKeys.map(function(k,i){return makeStatBar(statLabels[i],s1[k],s2[k]);}).join('')+
     '</div>';
