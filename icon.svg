@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 720">
+  <rect x="0" y="0" width="680" height="720" fill="white"/>
+  <polygon points="340,118 358,172 414,172 370,205 386,260 340,226 294,260 310,205 266,172 322,172" fill="#111"/>
+  <polygon points="340,60 348,86 376,86 354,102 362,128 340,112 318,128 326,102 304,86 332,86" fill="#111"/>
+  <polygon points="420,88 428,114 456,114 434,130 442,156 420,140 398,156 406,130 384,114 412,114" fill="#111"/>
+  <polygon points="474,158 482,184 510,184 488,200 496,226 474,210 452,226 460,200 438,184 466,184" fill="#111"/>
+  <polygon points="450,248 458,274 486,274 464,290 472,316 450,300 428,316 436,290 414,274 442,274" fill="#111"/>
+  <polygon points="390,308 398,334 426,334 404,350 412,376 390,360 368,376 376,350 354,334 382,334" fill="#111"/>
+  <polygon points="290,308 298,334 326,334 304,350 312,376 290,360 268,376 276,350 254,334 282,334" fill="#111"/>
+  <polygon points="230,248 238,274 266,274 244,290 252,316 230,300 208,316 216,290 194,274 222,274" fill="#111"/>
+  <polygon points="206,158 214,184 242,184 220,200 228,226 206,210 184,226 192,200 170,184 198,184" fill="#111"/>
+  <polygon points="260,88 268,114 296,114 274,130 282,156 260,140 238,156 246,130 224,114 252,114" fill="#111"/>
+  <line x1="170" y1="428" x2="246" y2="428" stroke="#111" stroke-width="2"/>
+  <text x="340" y="434" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#111" letter-spacing="10">LDC</text>
+  <line x1="434" y1="428" x2="510" y2="428" stroke="#111" stroke-width="2"/>
+  <text x="340" y="512" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="72" font-weight="900" fill="#111" letter-spacing="-1">CALCETTO</text>
+  <line x1="60" y1="548" x2="240" y2="548" stroke="#111" stroke-width="2"/>
+  <line x1="440" y1="548" x2="620" y2="548" stroke="#111" stroke-width="2"/>
+  <text x="340" y="582" text-anchor="middle" font-family="Arial,sans-serif" font-size="44" font-weight="700" fill="#111" letter-spacing="6">LEAGUE</text>
+  <line x1="60" y1="596" x2="620" y2="596" stroke="#111" stroke-width="2"/>
+</svg>
