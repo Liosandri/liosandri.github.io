@@ -468,6 +468,20 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
         </div>
       </div>
       <div class="admin-section">
+        <div class="admin-section-header" onclick="toggleAdminSection('notifswitch')">
+          <span id="notif-switch-label">🔔 Notifications</span><i class="ti ti-chevron-down chevron"></i>
+        </div>
+        <div class="admin-section-body" id="body-notifswitch">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 12px;">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:var(--text);" id="notif-status-label">Chargement...</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Active ou coupe toutes les notifs push OneSignal</div>
+            </div>
+            <button id="btn-notif-toggle" onclick="toggleNotifs()" style="padding:10px 20px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;">...</button>
+          </div>
+        </div>
+      </div>
+      <div class="admin-section">
         <div class="admin-section-header" onclick="toggleAdminSection('comptes')">
           <span>👤 Gestion des comptes</span><i class="ti ti-chevron-down chevron"></i>
         </div>
@@ -524,6 +538,7 @@ var selectedStatPlayer=null;
 var matchAnnule=false;
 var teamVoting=null,mvpVoting=null,fifaStatsAll={};
 var ponctuels=[],ponctuelLocked=false;
+var notifsCoupees=false;
 var palmaresMVP=[];
 var _playerToken='',_adminToken='';
 
@@ -543,6 +558,8 @@ function applyDataRes(dataRes,fromCache){
     mvpVoting=dataRes.mvpVoting||null;
     ponctuels=dataRes.ponctuels||[];
     ponctuelLocked=dataRes.ponctuelLocked||false;
+    notifsCoupees=dataRes.notifsCoupees||false;
+    updateNotifToggle();
   }
   // FIFA stats : cache 24h
   if(!fromCache&&dataRes.fifaStats&&Object.keys(dataRes.fifaStats).length>0){
@@ -979,6 +996,34 @@ function buildNotifSelect(){
   var sel=document.getElementById('notif-player-select');if(!sel)return;sel.innerHTML='';
   DB.map(function(p){return p.name;}).forEach(function(n){var opt=document.createElement('option');opt.value=n;opt.textContent=n;sel.appendChild(opt);});
 }
+function updateNotifToggle(){
+  var btn=document.getElementById('btn-notif-toggle');
+  var lbl=document.getElementById('notif-status-label');
+  var hdr=document.getElementById('notif-switch-label');
+  if(!btn||!lbl)return;
+  if(notifsCoupees){
+    btn.textContent='🔔 Réactiver';btn.style.background='#00c853';btn.style.color='#fff';
+    lbl.textContent='🔕 Notifications coupées';lbl.style.color='#ff4444';
+    if(hdr)hdr.textContent='🔕 Notifications (coupées)';
+  }else{
+    btn.textContent='🔕 Couper';btn.style.background='#ff4444';btn.style.color='#fff';
+    lbl.textContent='✅ Notifications actives';lbl.style.color='#00c853';
+    if(hdr)hdr.textContent='🔔 Notifications (actives)';
+  }
+}
+function toggleNotifs(){
+  var newVal=!notifsCoupees;
+  var msg=newVal?'Couper toutes les notifications push ?':'Réactiver les notifications push ?';
+  if(!confirm(msg))return;
+  var btn=document.getElementById('btn-notif-toggle');
+  btn.disabled=true;btn.textContent='...';
+  callSheet('setNotifsCoupees',{val:newVal?'true':'false'}).then(function(res){
+    if(res.success){notifsCoupees=newVal;updateNotifToggle();}
+    else alert('Erreur : '+(res.error||'inconnue'));
+    btn.disabled=false;
+  }).catch(function(e){alert('Erreur réseau');btn.disabled=false;});
+}
+
 function sendNotifIndividuelle(){
   var player=document.getElementById('notif-player-select').value;var title=document.getElementById('notif-title-input').value.trim();var msg=document.getElementById('notif-msg-input').value.trim();var resEl=document.getElementById('notif-result');
   if(!title||!msg){resEl.style.display='block';resEl.style.color='var(--danger)';resEl.textContent='⚠️ Titre et message obligatoires.';return;}resEl.style.display='none';
