@@ -623,8 +623,8 @@ function refreshData(){
     var joueur=null;for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===me.name.toLowerCase()){joueur=DB[i];break;}}
     if(joueur)me=joueur;selectedStatPlayer=me;buildPlayerSelect();updateTabVisibility();
     var phaseNow=getCurrentPhase();var wasInscrit=inscrits.indexOf(me.name)!==-1;
-    var savedLocal=localStorage.getItem('calcetto_presence_'+(me?me.name:''));var p;
-    if(phaseNow==='open_rotation'&&savedLocal==='present'){p='present';}else{p=wasInscrit?'present':'absent';}
+    var _pk='calcetto_presence_'+(me?me.name:'');var _ps=null;try{var _pr=JSON.parse(localStorage.getItem(_pk)||'null');if(_pr&&_pr.date===getNextThursdayDateStr())_ps=_pr.val;}catch(e){}var p;
+    if(phaseNow==='open_rotation'&&_ps==='present'){p='present';}else{p=wasInscrit?'present':'absent';}
     setPresence(p,true);
     buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();
     updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();
@@ -655,8 +655,8 @@ window.addEventListener('load',function(){
         if(j)me=j;selectedStatPlayer=me;
         buildPlayerSelect();updateTabVisibility();
         var phaseNow=getCurrentPhase();var wasInscrit=inscrits.indexOf(me.name)!==-1;
-        var savedLocal=localStorage.getItem('calcetto_presence_'+(me?me.name:''));var p;
-        if(phaseNow==='open_rotation'&&savedLocal==='present'){p='present';}else{p=wasInscrit?'present':'absent';}
+        var _pk='calcetto_presence_'+(me?me.name:'');var _ps=null;try{var _pr=JSON.parse(localStorage.getItem(_pk)||'null');if(_pr&&_pr.date===getNextThursdayDateStr())_ps=_pr.val;}catch(e){}var p;
+        if(phaseNow==='open_rotation'&&_ps==='present'){p='present';}else{p=wasInscrit?'present':'absent';}
         setPresence(p,true);
         buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();
         updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();
@@ -733,8 +733,8 @@ function enterApp(){
   }
   buildPlayerSelect();updateTabVisibility();
   var phaseInit=getCurrentPhase();var wasInscritInit=inscrits.indexOf(me.name)!==-1;
-  var savedLocalInit=localStorage.getItem('calcetto_presence_'+(me?me.name:''));var savedPresence;
-  if(phaseInit==='open_rotation'&&savedLocalInit==='present'){savedPresence='present';}else{savedPresence=wasInscritInit?'present':'absent';}
+  var _pk2='calcetto_presence_'+(me?me.name:'');var _ps2=null;try{var _pr2=JSON.parse(localStorage.getItem(_pk2)||'null');if(_pr2&&_pr2.date===getNextThursdayDateStr())_ps2=_pr2.val;}catch(e){}var savedPresence;
+  if(phaseInit==='open_rotation'&&_ps2==='present'){savedPresence='present';}else{savedPresence=wasInscritInit?'present':'absent';}
   setPresence(savedPresence,true);buildStatPerso('all');buildStatClasse('all');buildStatRotation();updatePonctuelZone();
   setInterval(tickTimer,5000);tickTimer();
 }
@@ -800,7 +800,7 @@ function setPresence(val,silent){
   }
   // Optimistic UI : appliquer immédiatement sans attendre GAS
   presence=val;
-  if(!silent)localStorage.setItem('calcetto_presence_'+(me?me.name:''),val);
+  if(!silent){var _presKey='calcetto_presence_'+(me?me.name:'');localStorage.setItem(_presKey,JSON.stringify({val:val,date:getNextThursdayDateStr()}));}
   if(val==='present'){if(inscrits.indexOf(me.name)===-1)inscrits.push(me.name);}
   else{inscrits=inscrits.filter(function(n){return n!==me.name;});}
   _applyPresenceUI(val);
