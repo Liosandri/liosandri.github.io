@@ -530,8 +530,10 @@ var SESSION_KEY='calcetto_session';
 var SESSION_DURATION=30*24*60*60*1000;
 var CACHE_KEY='calcetto_data_cache';
 var CACHE_FIFA_KEY='calcetto_fifa_cache';
+var CACHE_FULL_KEY='calcetto_full_cache';
 var CACHE_TTL=6*60*60*1000; // 6h pour l'historique et palmarès
 var CACHE_FIFA_TTL=24*60*60*1000; // 24h pour les stats FIFA
+var CACHE_FULL_TTL=6*60*60*1000; // 6h pour historique/stats
 var DB=[],me=null,isAdmin=false,presence='absent',inscrits=[];
 var currentPeriod='all',currentPeriodClasse='all',currentTel='';
 var selectedStatPlayer=null;
@@ -546,6 +548,48 @@ function saveDataCache(d){try{localStorage.setItem(CACHE_KEY,JSON.stringify({dat
 function loadDataCache(){try{var c=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');if(c&&Date.now()-c.ts<CACHE_TTL)return c.data;}catch(e){}return null;}
 function saveFifaCache(d){try{localStorage.setItem(CACHE_FIFA_KEY,JSON.stringify({data:d,ts:Date.now()}));}catch(e){}}
 function loadFifaCache(){try{var c=JSON.parse(localStorage.getItem(CACHE_FIFA_KEY)||'null');if(c&&Date.now()-c.ts<CACHE_FIFA_TTL)return c.data;}catch(e){}return null;}
+function saveFullCache(d){try{localStorage.setItem(CACHE_FULL_KEY,JSON.stringify({data:d,ts:Date.now()}));}catch(e){}}
+function loadFullCache(){try{var c=JSON.parse(localStorage.getItem(CACHE_FULL_KEY)||'null');if(c&&Date.now()-c.ts<CACHE_FULL_TTL)return c.data;}catch(e){}return null;}
+
+function getConfirmedPresence(){
+  if(!me)return null;
+  try{
+    var c=JSON.parse(localStorage.getItem('calcetto_confirmed_'+me.name)||'null');
+    if(c&&c.date===getNextThursdayDateStr())return c.inscrit?'present':'absent';
+  }catch(e){}
+  return null;
+}
+
+// applyLiveData : données fraîches toujours (inscrits, équipes, MVP, ponctuels)
+function applyLiveData(d){
+  inscrits=d.inscrits||[];
+  matchAnnule=d.matchAnnule||false;
+  teamVoting=d.teamVoting||null;
+  mvpVoting=d.mvpVoting||null;
+  ponctuels=d.ponctuels||[];
+  ponctuelLocked=d.ponctuelLocked||false;
+  notifsCoupees=d.notifsCoupees||false;
+  updateNotifToggle();
+  // Sauvegarder la présence confirmée côté serveur pour affichage instantané
+  if(me){
+    var confirmed=inscrits.indexOf(me.name)!==-1;
+    try{localStorage.setItem('calcetto_confirmed_'+me.name,JSON.stringify({inscrit:confirmed,date:getNextThursdayDateStr()}));}catch(e){}
+  }
+}
+
+// applyFullData : données cachables (historique, stats, palmarès)
+function applyFullData(d){
+  if(d.players&&d.players.length>0){
+    // Merge pts/history into DB without overwriting live data
+    DB=d.players;
+  }
+  palmaresMVP=d.palmaresMVP||palmaresMVP;
+  if(d.fifaStats&&Object.keys(d.fifaStats).length>0){
+    fifaStatsAll=d.fifaStats;saveFifaCache(fifaStatsAll);
+  }
+  saveFullCache(d);
+}
+
 function applyDataRes(dataRes,fromCache){
   // Données statiques (mises en cache) : historique, joueurs, palmares
   DB=dataRes.players||[];
@@ -585,7 +629,7 @@ function callSheet(action,params){
     'notifyInscriptionsOuvertes','notifyInscriptionsClassiques','initMVPVoting','setPonctuelLock',
     'pauseNotifications','resumeNotifications','sendNotifLionel','sendNotifPlayer',
     'setPlayerActive','getPlayersAdmin','addPlayer','clearPendingScore','getPendingScore','sendNotifAll','setNotifsCoupees','genererEquipesJeudi','notifyInscriptionsLundi'];
-  var authActions=['getData','register','voteMVP','changePin','submitScore',
+  var authActions=['getData','getLiveData','getFullData','register','voteMVP','changePin','submitScore',
     'addPonctuel','removePonctuel','saveOneSignalId','checkAccountActive'];
   if(adminActions.indexOf(action)!==-1&&_adminToken){
     url+='&adminToken='+encodeURIComponent(_adminToken);
@@ -618,16 +662,13 @@ function refreshData(){
   if(!me)return;
   var indicator=document.getElementById('ptr-indicator');
   indicator.textContent='🔄 Actualisation...';indicator.classList.add('visible');
-  callSheet('getData').then(function(dataRes){
-    applyDataRes(dataRes,false);
-    var joueur=null;for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===me.name.toLowerCase()){joueur=DB[i];break;}}
-    if(joueur)me=joueur;selectedStatPlayer=me;buildPlayerSelect();updateTabVisibility();
+  callSheet('getLiveData').then(function(d){
+    applyLiveData(d);
     var phaseNow=getCurrentPhase();var wasInscrit=inscrits.indexOf(me.name)!==-1;
     var _pk='calcetto_presence_'+(me?me.name:'');var _ps=null;try{var _pr=JSON.parse(localStorage.getItem(_pk)||'null');if(_pr&&_pr.date===getNextThursdayDateStr())_ps=_pr.val;}catch(e){}var p;
     if(phaseNow==='open_rotation'&&_ps==='present'){p='present';}else{p=wasInscrit?'present':'absent';}
     setPresence(p,true);
-    buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();
-    updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();
+    updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();buildTeamTab();
     indicator.classList.remove('visible');
   }).catch(function(){indicator.classList.remove('visible');});
 }
@@ -643,34 +684,31 @@ window.addEventListener('load',function(){
     var cached=loadDataCache();
     var fifaCached=loadFifaCache();
     if(fifaCached)fifaStatsAll=fifaCached;
-    if(cached){
-      applyDataRes(cached,true);
+    var fullCached=loadFullCache();
+    if(fullCached){
+      // On a du cache full → afficher l'app instantanément
+      applyFullData(fullCached);
       var joueur=null;for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===session.name.toLowerCase()){joueur=DB[i];break;}}
       me=joueur||{name:session.name,pts:0,history:[]};isAdmin=session.admin;currentTel=session.tel;selectedStatPlayer=me;
       enterApp();
-      // Rafraîchir en arrière-plan silencieusement
-      callSheet('getData').then(function(dataRes){
-        applyDataRes(dataRes,false);
-        var j=null;for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===me.name.toLowerCase()){j=DB[i];break;}}
-        if(j)me=j;selectedStatPlayer=me;
-        buildPlayerSelect();updateTabVisibility();
+      // getLiveData en arrière-plan : inscrits/équipes/MVP frais
+      callSheet('getLiveData').then(function(d){
+        applyLiveData(d);
         var phaseNow=getCurrentPhase();var wasInscrit=inscrits.indexOf(me.name)!==-1;
         var _pk='calcetto_presence_'+(me?me.name:'');var _ps=null;try{var _pr=JSON.parse(localStorage.getItem(_pk)||'null');if(_pr&&_pr.date===getNextThursdayDateStr())_ps=_pr.val;}catch(e){}var p;
         if(phaseNow==='open_rotation'&&_ps==='present'){p='present';}else{p=wasInscrit?'present':'absent';}
         setPresence(p,true);
-        buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();
-        updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();
-        buildTeamTab();
+        updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();buildTeamTab();
       }).catch(function(){});
-      // checkAccountActive en parallèle — déconnecte si compte désactivé
-      callSheet('checkAccountActive',{name:session.name}).then(function(chk){
-        if(chk&&chk.active===false){doLogout();}
-      }).catch(function(){});
+      // getFullData en arrière-plan si cache expiré bientôt (< 30min restantes) ou forcé
+      callSheet('getFullData').then(function(d){applyFullData(d);buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();buildPlayerSelect();updateTabVisibility();}).catch(function(){});
+      callSheet('checkAccountActive',{name:session.name}).then(function(chk){if(chk&&chk.active===false){doLogout();}}).catch(function(){});
     } else {
-      // Pas de cache : chargement classique avec overlay
+      // Pas de cache : chargement en 2 appels parallèles
       document.getElementById('loading-overlay').style.display='flex';
-      callSheet('getData').then(function(dataRes){
-        applyDataRes(dataRes,false);
+      Promise.all([callSheet('getLiveData'),callSheet('getFullData')]).then(function(results){
+        var live=results[0],full=results[1];
+        applyLiveData(live);applyFullData(full);
         var joueur=null;for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===session.name.toLowerCase()){joueur=DB[i];break;}}
         me=joueur||{name:session.name,pts:0,history:[]};isAdmin=session.admin;currentTel=session.tel;selectedStatPlayer=me;
         document.getElementById('loading-overlay').style.display='none';
@@ -735,6 +773,9 @@ function enterApp(){
   var phaseInit=getCurrentPhase();var wasInscritInit=inscrits.indexOf(me.name)!==-1;
   var _pk2='calcetto_presence_'+(me?me.name:'');var _ps2=null;try{var _pr2=JSON.parse(localStorage.getItem(_pk2)||'null');if(_pr2&&_pr2.date===getNextThursdayDateStr())_ps2=_pr2.val;}catch(e){}var savedPresence;
   if(phaseInit==='open_rotation'&&_ps2==='present'){savedPresence='present';}else{savedPresence=wasInscritInit?'present':'absent';}
+  // Afficher immédiatement la présence confirmée du cache local si dispo
+  var fastPresence=getConfirmedPresence();
+  if(fastPresence!==null){savedPresence=fastPresence;}
   setPresence(savedPresence,true);buildStatPerso('all');buildStatClasse('all');buildStatRotation();updatePonctuelZone();
   setInterval(tickTimer,5000);tickTimer();
 }
