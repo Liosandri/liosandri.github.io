@@ -841,7 +841,12 @@ function setPresence(val,silent){
   }
   // Optimistic UI : appliquer immédiatement sans attendre GAS
   presence=val;
-  if(!silent){var _presKey='calcetto_presence_'+(me?me.name:'');localStorage.setItem(_presKey,JSON.stringify({val:val,date:getNextThursdayDateStr()}));}
+  if(!silent){
+    var _presKey='calcetto_presence_'+(me?me.name:'');
+    localStorage.setItem(_presKey,JSON.stringify({val:val,date:getNextThursdayDateStr()}));
+    // Mettre à jour calcetto_confirmed_ immédiatement aussi pour cohérence au prochain chargement
+    try{localStorage.setItem('calcetto_confirmed_'+(me?me.name:''),JSON.stringify({inscrit:val==='present',date:getNextThursdayDateStr()}));}catch(e){}
+  }
   if(val==='present'){if(inscrits.indexOf(me.name)===-1)inscrits.push(me.name);}
   else{inscrits=inscrits.filter(function(n){return n!==me.name;});}
   _applyPresenceUI(val);
