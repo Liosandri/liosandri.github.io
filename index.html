@@ -643,7 +643,7 @@ window.addEventListener('load',function(){
         setPresence(p,true);
         buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();
         updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();
-        if(teamVoting&&teamVoting.team1)buildTeamTab();
+        buildTeamTab();
       }).catch(function(){});
       // checkAccountActive en parallèle — déconnecte si compte désactivé
       callSheet('checkAccountActive',{name:session.name}).then(function(chk){
@@ -753,7 +753,7 @@ function getCurrentPhase(){
   else if(day===5){if(h<8)return 'closed';else if(h<12)return 'open_rotation';else return 'open_classic';}
   return 'open_classic';
 }
-function getNextThursday(){var now=new Date(),day=now.getDay();var diff=(4-day+7)%7;if(diff===0)diff=7;var d=new Date(now);d.setDate(now.getDate()+diff);d.setHours(21,0,0,0);return d;}
+function getNextThursday(){var now=new Date(),day=now.getDay();var diff=(4-day+7)%7;var d=new Date(now);d.setDate(now.getDate()+diff);d.setHours(21,0,0,0);return d;}
 function getLastThursday(){var now=new Date(),day=now.getDay();var daysAgo=(day-4+7)%7;var d=new Date(now);d.setDate(now.getDate()-daysAgo);d.setHours(21,0,0,0);return d;}
 function isWindowOpen(){return getCurrentPhase()==='open_rotation';}
 
@@ -1157,15 +1157,22 @@ function doValidateTeams(){
   callSheet('regenerateTeams',{inscrits:JSON.stringify(team1save.concat(team2save))}).then(function(res){if(res&&res.team1){teamVoting=res;}teamVoting.team1=team1save;teamVoting.team2=team2save;teamVoting.eligible=team1save.concat(team2save);teamsPendingValidation=false;buildTeamTab();});
 }
 
+function getNextThursdayDateStr(){
+  var now=new Date();var paris=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Paris'}));
+  var day=paris.getDay();var diff=(4-day+7)%7;
+  var next=new Date(paris);next.setDate(paris.getDate()+diff);
+  return next.getFullYear()+'-'+String(next.getMonth()+1).padStart(2,'0')+'-'+String(next.getDate()).padStart(2,'0');
+}
 function getNextThursdayLabel(){
-  var now=new Date();var paris=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Paris'}));var day=paris.getDay();var diff=(4-day+7)%7;if(diff===0)diff=7;var next=new Date(paris);next.setDate(paris.getDate()+diff);
+  var now=new Date();var paris=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Paris'}));var day=paris.getDay();var diff=(4-day+7)%7;var next=new Date(paris);next.setDate(paris.getDate()+diff);
   var mois=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
   return 'jeudi '+next.getDate()+' '+mois[next.getMonth()];
 }
 
 function buildTeamTab(){
   var el=document.getElementById('team-content');
-  if(!teamVoting||!teamVoting.team1){
+  var nextDateStr=getNextThursdayDateStr();
+  if(!teamVoting||!teamVoting.team1||teamVoting.date!==nextDateStr){
     var label=getNextThursdayLabel();
     el.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;gap:12px;"><div style="font-size:36px;">⚽</div><div style="font-size:16px;font-weight:600;color:var(--silver-light);">Équipes du '+label+'</div><div style="font-size:13px;color:var(--text-muted);text-align:center;max-width:280px;line-height:1.5;">Les équipes seront affichées jeudi à 12h si le groupe est complet.</div></div>';
     return;
