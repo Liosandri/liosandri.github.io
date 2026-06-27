@@ -85,8 +85,6 @@ input:focus,select:focus{border-color:var(--blue);}
 .absents-popup .player-row{padding:10px 0;border-bottom:1px solid var(--border);}
 .absents-popup .player-row:last-child{border-bottom:none;}
 .absents-popup-close{margin-top:16px;width:100%;padding:12px;background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-weight:600;cursor:pointer;font-size:14px;}
-.absent-banner{background:rgba(255,59,48,.12);color:var(--danger);font-size:13px;font-weight:600;padding:10px 14px;display:none;align-items:center;gap:8px;border-top:1px solid rgba(255,59,48,.2);}
-.absent-banner.show{display:flex;}
 .banner{border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:10px;display:flex;align-items:flex-start;gap:8px;}
 .banner-info{background:rgba(30,144,255,.12);color:var(--blue);border:1px solid rgba(30,144,255,.2);}
 .banner-warn{background:rgba(255,149,0,.12);color:var(--warn);border:1px solid rgba(255,149,0,.2);}
@@ -351,7 +349,6 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
             <button class="btn-presence" id="btn-absent" onclick="setPresence('absent')"><i class="ti ti-x" style="font-size:20px;"></i>Absent</button>
           </div>
         </div>
-        <div class="absent-banner show" id="absent-banner"><i class="ti ti-alert-circle"></i> Tu es marqué absent pour ce jeudi.</div>
       </div>
       <div id="cancel-match-zone"></div>
       <div id="banner-zone"></div>
