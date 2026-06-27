@@ -559,8 +559,12 @@ function loadFullCache(){try{var c=JSON.parse(localStorage.getItem(CACHE_FULL_KE
 function getConfirmedPresence(){
   if(!me)return null;
   try{
-    var c=JSON.parse(localStorage.getItem('calcetto_confirmed_'+me.name)||'null');
-    if(c&&c.date===getNextThursdayDateStr())return c.status||null;
+    var raw=localStorage.getItem('calcetto_confirmed_'+me.name);
+    if(!raw)return null;
+    var c=JSON.parse(raw);
+    if(c&&c.date===getNextThursdayDateStr()&&(c.status==='present'||c.status==='absent'))return c.status;
+    // Si date différente ou status invalide → ignorer
+    return null;
   }catch(e){}
   return null;
 }
@@ -576,10 +580,14 @@ function applyLiveData(d){
   notifsCoupees=d.notifsCoupees||false;
   updateNotifToggle();
   absentsConnus=d.absents||[];
-  // Sauvegarder la présence confirmée côté serveur — seulement si absents est bien dans la réponse
-  if(me&&d.absents!==undefined){
+  // Mettre à jour calcetto_confirmed_ uniquement si absents est dans la réponse (getLiveData)
+  if(me&&Array.isArray(d.absents)){
     var myStatus=inscrits.indexOf(me.name)!==-1?'present':(absentsConnus.indexOf(me.name)!==-1?'absent':'pending');
-    try{localStorage.setItem('calcetto_confirmed_'+me.name,JSON.stringify({status:myStatus,date:getNextThursdayDateStr()}));}catch(e){}
+    if(myStatus==='pending'){
+      localStorage.removeItem('calcetto_confirmed_'+me.name);
+    } else {
+      try{localStorage.setItem('calcetto_confirmed_'+me.name,JSON.stringify({status:myStatus,date:getNextThursdayDateStr()}));}catch(e){}
+    }
   }
 }
 
@@ -700,9 +708,7 @@ window.addEventListener('load',function(){
       // getLiveData en arrière-plan : inscrits/équipes/MVP frais
       callSheet('getLiveData').then(function(d){
         applyLiveData(d);
-        var phaseNow=getCurrentPhase();var wasInscrit=inscrits.indexOf(me.name)!==-1;
-        var _pk='calcetto_presence_'+(me?me.name:'');var _ps=null;try{var _pr=JSON.parse(localStorage.getItem(_pk)||'null');if(_pr&&_pr.date===getNextThursdayDateStr())_ps=_pr.val;}catch(e){}var p;
-        if(phaseNow==='open_rotation'&&_ps==='present'){p='present';}else{p=wasInscrit?'present':'absent';}
+        var p=getConfirmedPresence()||'pending';
         setPresence(p,true);
         updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();buildTeamTab();
       }).catch(function(){});
