@@ -909,15 +909,19 @@ function _applyPresenceUI(val){
 
 function updateBannerZone(){
   var el=document.getElementById('banner-zone');if(!el||!me)return;
-  if(matchAnnule){el.innerHTML='<div class="banner banner-warn"><i class="ti ti-x"></i><span>❌ Le match de jeudi est annulé. Les inscriptions sont fermées jusqu\'au prochain match.</span></div>';return;}
+  if(matchAnnule){el.innerHTML='<div class="banner banner-warn"><i class="ti ti-x"></i><span>❌ Le match de jeudi est annulé. Les inscriptions sont fermées jusqu&#39;au prochain match.</span></div>';return;}
   var phase=getCurrentPhase();
-  if(presence==='present'){
+  // Lire l'état depuis le bouton actif (source de vérité fiable)
+  var state='pending';
+  var bP=document.getElementById('btn-present'),bPd=document.getElementById('btn-pending'),bA=document.getElementById('btn-absent');
+  if(bP&&bP.classList.contains('selected-present'))state='present';
+  else if(bA&&bA.classList.contains('selected-absent'))state='absent';
+  if(state==='present'){
     if(isWindowOpen()&&(me.pts||0)>=5)el.innerHTML='';
     else el.innerHTML='<div class="banner banner-success"><i class="ti ti-circle-check"></i><span>Tu es inscrit pour jeudi !</span></div>';
-  } else if(presence==='absent'){
+  } else if(state==='absent'){
     el.innerHTML='<div class="banner banner-warn"><i class="ti ti-x"></i><span>Tu es marqué absent pour ce jeudi.</span></div>';
   } else {
-    // pending
     if(phase==='open_classic'&&inscrits.length>=10&&inscrits.indexOf(me.name)===-1){
       el.innerHTML='<div class="banner banner-warn"><i class="ti ti-lock"></i><span>Groupe complet (10/10). Plus de place disponible.</span></div>';
     } else if(phase==='open_classic'||phase==='open_rotation'){
