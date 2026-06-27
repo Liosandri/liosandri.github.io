@@ -88,6 +88,7 @@ input:focus,select:focus{border-color:var(--blue);}
 .banner{border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:10px;display:flex;align-items:flex-start;gap:8px;}
 .banner-info{background:rgba(30,144,255,.12);color:var(--blue);border:1px solid rgba(30,144,255,.2);}
 .banner-warn{background:rgba(255,149,0,.12);color:var(--warn);border:1px solid rgba(255,149,0,.2);}
+.banner-danger{background:rgba(255,59,48,.12);color:var(--danger);border:1px solid rgba(255,59,48,.2);}
 .banner-success{background:rgba(0,200,83,.12);color:#00c853;border:1px solid rgba(0,200,83,.2);}
 .locked-card{background:var(--bg-card);border:1px dashed var(--border);border-radius:14px;padding:24px;text-align:center;margin-bottom:12px;}
 .locked-text{font-size:14px;color:var(--text-muted);margin-top:8px;}
@@ -920,7 +921,7 @@ function updateBannerZone(){
     if(isWindowOpen()&&(me.pts||0)>=5)el.innerHTML='';
     else el.innerHTML='<div class="banner banner-success"><i class="ti ti-circle-check"></i><span>Tu es inscrit pour jeudi !</span></div>';
   } else if(state==='absent'){
-    el.innerHTML='<div class="banner banner-warn"><i class="ti ti-x"></i><span>Tu es marqué absent pour ce jeudi.</span></div>';
+    el.innerHTML='<div class="banner banner-danger"><i class="ti ti-x"></i><span>Tu es marqué absent pour ce jeudi.</span></div>';
   } else {
     if(phase==='open_classic'&&inscrits.length>=10&&inscrits.indexOf(me.name)===-1){
       el.innerHTML='<div class="banner banner-warn"><i class="ti ti-lock"></i><span>Groupe complet (10/10). Plus de place disponible.</span></div>';
