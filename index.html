@@ -579,8 +579,8 @@ function applyLiveData(d){
   notifsCoupees=d.notifsCoupees||false;
   updateNotifToggle();
   absentsConnus=d.absents||[];
-  // Sauvegarder la présence confirmée côté serveur pour affichage instantané
-  if(me){
+  // Sauvegarder la présence confirmée côté serveur — seulement si absents est bien dans la réponse
+  if(me&&d.absents!==undefined){
     var myStatus=inscrits.indexOf(me.name)!==-1?'present':(absentsConnus.indexOf(me.name)!==-1?'absent':'pending');
     try{localStorage.setItem('calcetto_confirmed_'+me.name,JSON.stringify({status:myStatus,date:getNextThursdayDateStr()}));}catch(e){}
   }
@@ -779,13 +779,8 @@ function enterApp(){
     else{document.getElementById('cancel-match-zone').innerHTML='<div class="banner banner-warn" style="margin-bottom:10px;"><i class="ti ti-x"></i><span>Match annulé — les inscriptions sont bloquées.</span></div>';}
   }
   buildPlayerSelect();updateTabVisibility();
-  var phaseInit=getCurrentPhase();var wasInscritInit=inscrits.indexOf(me.name)!==-1;
-  var _pk2='calcetto_presence_'+(me?me.name:'');var _ps2=null;try{var _pr2=JSON.parse(localStorage.getItem(_pk2)||'null');if(_pr2&&_pr2.date===getNextThursdayDateStr())_ps2=_pr2.val;}catch(e){}var savedPresence;
-  if(phaseInit==='open_rotation'&&_ps2==='present'){savedPresence='present';}else{savedPresence=wasInscritInit?'present':'absent';}
-  // Afficher immédiatement la présence confirmée du cache local si dispo
-  var fastPresence=getConfirmedPresence();
-  if(fastPresence!==null){savedPresence=fastPresence;}
-  else{savedPresence='pending';}
+  // Afficher immédiatement la présence depuis le cache local (toujours prioritaire)
+  var savedPresence=getConfirmedPresence()||'pending';
   setPresence(savedPresence,true);buildStatPerso('all');buildStatClasse('all');buildStatRotation();updatePonctuelZone();
   setInterval(tickTimer,5000);tickTimer();
 }
