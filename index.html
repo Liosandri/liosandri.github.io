@@ -851,7 +851,10 @@ function setPresence(val,silent){
   if(!silent){
     var _presKey='calcetto_presence_'+(me?me.name:'');
     localStorage.setItem(_presKey,JSON.stringify({val:val,date:getNextThursdayDateStr()}));
-    try{localStorage.setItem('calcetto_confirmed_'+(me?me.name:''),JSON.stringify({status:val,date:getNextThursdayDateStr()}));}catch(e){}
+    try{
+      if(val==='pending'){localStorage.removeItem('calcetto_confirmed_'+(me?me.name:''));}
+      else{localStorage.setItem('calcetto_confirmed_'+(me?me.name:''),JSON.stringify({status:val,date:getNextThursdayDateStr()}));}
+    }catch(e){}
   }
   // Mise à jour optimiste inscrits/absents
   if(val==='present'){
@@ -895,19 +898,28 @@ function _applyPresenceUI(val){
   bp.className='btn-presence'+(val==='present'?' selected-present':'');
   bpd.className='btn-presence'+(val==='pending'?' selected-pending':'');
   ba.className='btn-presence'+(val==='absent'?' selected-absent':'');
-  var absBanner=document.getElementById('absent-banner');
-  if(absBanner)absBanner.classList.toggle('show',val==='absent');
+  // absent-banner géré par updateBannerZone, pas besoin de toggle ici
 }
 
 function updateBannerZone(){
   var el=document.getElementById('banner-zone');if(!el||!me)return;
   if(matchAnnule){el.innerHTML='<div class="banner banner-warn"><i class="ti ti-x"></i><span>❌ Le match de jeudi est annulé. Les inscriptions sont fermées jusqu\'au prochain match.</span></div>';return;}
   var phase=getCurrentPhase();
-  if(presence==='present'){if(isWindowOpen()&&(me.pts||0)>=5)el.innerHTML='';else el.innerHTML='<div class="banner banner-success"><i class="ti ti-circle-check"></i><span>Tu es inscrit pour jeudi !</span></div>';}
-  else if(presence==='absent'){el.innerHTML='<div class="banner banner-warn"><i class="ti ti-x"></i><span>Tu es marqué absent pour ce jeudi.</span></div>';}
-  else if(phase==='open_classic'&&inscrits.length>=10){el.innerHTML='<div class="banner banner-warn"><i class="ti ti-lock"></i><span>Groupe complet (10/10). Plus de place disponible.</span></div>';}
-  else if(phase==='open_classic'){el.innerHTML='<div class="banner banner-info" style="background:rgba(255,149,0,.1);border-color:rgba(255,149,0,.3);"><i class="ti ti-clock" style="color:#ff9500;"></i><span style="color:#ff9500;">Tu n&#39;as pas encore répondu pour jeudi.</span></div>';}
-  else el.innerHTML='';
+  if(presence==='present'){
+    if(isWindowOpen()&&(me.pts||0)>=5)el.innerHTML='';
+    else el.innerHTML='<div class="banner banner-success"><i class="ti ti-circle-check"></i><span>Tu es inscrit pour jeudi !</span></div>';
+  } else if(presence==='absent'){
+    el.innerHTML='<div class="banner banner-warn"><i class="ti ti-x"></i><span>Tu es marqué absent pour ce jeudi.</span></div>';
+  } else {
+    // pending
+    if(phase==='open_classic'&&inscrits.length>=10&&inscrits.indexOf(me.name)===-1){
+      el.innerHTML='<div class="banner banner-warn"><i class="ti ti-lock"></i><span>Groupe complet (10/10). Plus de place disponible.</span></div>';
+    } else if(phase==='open_classic'||phase==='open_rotation'){
+      el.innerHTML='<div class="banner banner-info" style="background:rgba(255,149,0,.1);border-color:rgba(255,149,0,.3);"><i class="ti ti-clock" style="color:#ff9500;"></i><span style="color:#ff9500;">Tu n&#39;as pas encore répondu pour jeudi.</span></div>';
+    } else {
+      el.innerHTML='';
+    }
+  }
 }
 
 function updateListeZone(){
