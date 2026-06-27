@@ -544,6 +544,7 @@ var selectedStatPlayer=null;
 var matchAnnule=false;
 var teamVoting=null,mvpVoting=null,fifaStatsAll={};
 var absentsConnus=[];
+var _presenceManuallySet=false; // true si joueur a cliqué dans les 10 dernières secondes
 var ponctuels=[],ponctuelLocked=false;
 var notifsCoupees=false;
 var palmaresMVP=[];
@@ -708,8 +709,7 @@ window.addEventListener('load',function(){
       // getLiveData en arrière-plan : inscrits/équipes/MVP frais
       callSheet('getLiveData').then(function(d){
         applyLiveData(d);
-        var p=getConfirmedPresence()||'pending';
-        setPresence(p,true);
+        if(!_presenceManuallySet){var p=getConfirmedPresence()||'pending';setPresence(p,true);}
         updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();buildTeamTab();
       }).catch(function(){});
       // getFullData en arrière-plan si cache expiré bientôt (< 30min restantes) ou forcé
@@ -852,6 +852,9 @@ function setPresence(val,silent){
   var prev=presence;
   presence=val;
   if(!silent){
+    _presenceManuallySet=true;
+    clearTimeout(window._presManualTimer);
+    window._presManualTimer=setTimeout(function(){_presenceManuallySet=false;},10000);
     var _presKey='calcetto_presence_'+(me?me.name:'');
     localStorage.setItem(_presKey,JSON.stringify({val:val,date:getNextThursdayDateStr()}));
     try{
