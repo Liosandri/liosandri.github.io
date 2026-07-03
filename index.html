@@ -72,23 +72,18 @@ input:focus,select:focus{border-color:var(--blue);}
 .presence-inner{padding:16px;}
 .presence-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
 .presence-date{font-size:16px;font-weight:600;color:var(--silver-light);margin-bottom:14px;text-transform:capitalize;}
-.presence-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
-.btn-presence{padding:14px 6px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--bg-card2);color:var(--text-muted);transition:all .15s;width:100%;}
-.btn-presence:disabled{opacity:0.35;cursor:not-allowed;}
-.btn-presence.selected-present{background:rgba(0,200,83,.15);color:#00c853;border-color:#00c853;}
-.btn-presence.selected-absent{background:rgba(255,59,48,.15);color:var(--danger);border-color:var(--danger);}
-.btn-presence.selected-pending{background:rgba(255,149,0,.12);color:#ff9500;border-color:#ff9500;}
-.absents-popup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center;}
-.absents-popup-overlay.show{display:flex;}
-.absents-popup{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;min-width:280px;max-width:340px;width:90%;}
-.absents-popup h3{font-size:16px;font-weight:700;margin-bottom:16px;color:var(--text);}
-.absents-popup .player-row{padding:10px 0;border-bottom:1px solid var(--border);}
-.absents-popup .player-row:last-child{border-bottom:none;}
-.absents-popup-close{margin-top:16px;width:100%;padding:12px;background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-weight:600;cursor:pointer;font-size:14px;}
+.presence-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-present{padding:16px 8px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--bg-card2);color:var(--text-muted);transition:all .15s;width:100%;}
+.btn-present.selected{background:rgba(0,200,83,.15);color:#00c853;border-color:#00c853;}
+.btn-present:disabled{opacity:0.35;cursor:not-allowed;}
+.btn-absent-btn{padding:16px 8px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--bg-card2);color:var(--text-muted);transition:all .15s;width:100%;}
+.btn-absent-btn.selected{background:rgba(255,59,48,.15);color:var(--danger);border-color:var(--danger);}
+.btn-absent-btn:disabled{opacity:0.35;cursor:not-allowed;}
+.absent-banner{background:rgba(255,59,48,.12);color:var(--danger);font-size:13px;font-weight:600;padding:10px 14px;display:none;align-items:center;gap:8px;border-top:1px solid rgba(255,59,48,.2);}
+.absent-banner.show{display:flex;}
 .banner{border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:10px;display:flex;align-items:flex-start;gap:8px;}
 .banner-info{background:rgba(30,144,255,.12);color:var(--blue);border:1px solid rgba(30,144,255,.2);}
 .banner-warn{background:rgba(255,149,0,.12);color:var(--warn);border:1px solid rgba(255,149,0,.2);}
-.banner-danger{background:rgba(255,59,48,.12);color:var(--danger);border:1px solid rgba(255,59,48,.2);}
 .banner-success{background:rgba(0,200,83,.12);color:#00c853;border:1px solid rgba(0,200,83,.2);}
 .locked-card{background:var(--bg-card);border:1px dashed var(--border);border-radius:14px;padding:24px;text-align:center;margin-bottom:12px;}
 .locked-text{font-size:14px;color:var(--text-muted);margin-top:8px;}
@@ -345,11 +340,11 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
           <div class="presence-label">Prochain match</div>
           <div class="presence-date" id="next-date">—</div>
           <div class="presence-btns">
-            <button class="btn-presence" id="btn-present" onclick="setPresence('present')"><i class="ti ti-check" style="font-size:20px;"></i>Présent</button>
-            <button class="btn-presence selected-pending" id="btn-pending" onclick="setPresence('pending')"><i class="ti ti-clock" style="font-size:20px;"></i>En attente</button>
-            <button class="btn-presence" id="btn-absent" onclick="setPresence('absent')"><i class="ti ti-x" style="font-size:20px;"></i>Absent</button>
+            <button class="btn-present" id="btn-present" onclick="setPresence('present')"><i class="ti ti-check" style="font-size:22px;"></i>Présent</button>
+            <button class="btn-absent-btn selected" id="btn-absent" onclick="setPresence('absent')"><i class="ti ti-x" style="font-size:22px;"></i>Absent</button>
           </div>
         </div>
+        <div class="absent-banner show" id="absent-banner"><i class="ti ti-alert-circle"></i> Tu es marqué absent pour ce jeudi.</div>
       </div>
       <div id="cancel-match-zone"></div>
       <div id="banner-zone"></div>
@@ -473,20 +468,6 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
         </div>
       </div>
       <div class="admin-section">
-        <div class="admin-section-header" onclick="toggleAdminSection('notifswitch')">
-          <span id="notif-switch-label">🔔 Notifications</span><i class="ti ti-chevron-down chevron"></i>
-        </div>
-        <div class="admin-section-body" id="body-notifswitch">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 12px;">
-            <div>
-              <div style="font-size:14px;font-weight:600;color:var(--text);" id="notif-status-label">Chargement...</div>
-              <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Active ou coupe toutes les notifs push OneSignal</div>
-            </div>
-            <button id="btn-notif-toggle" onclick="toggleNotifs()" style="padding:10px 20px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;">...</button>
-          </div>
-        </div>
-      </div>
-      <div class="admin-section">
         <div class="admin-section-header" onclick="toggleAdminSection('comptes')">
           <span>👤 Gestion des comptes</span><i class="ti ti-chevron-down chevron"></i>
         </div>
@@ -535,19 +516,14 @@ var SESSION_KEY='calcetto_session';
 var SESSION_DURATION=30*24*60*60*1000;
 var CACHE_KEY='calcetto_data_cache';
 var CACHE_FIFA_KEY='calcetto_fifa_cache';
-var CACHE_FULL_KEY='calcetto_full_cache';
 var CACHE_TTL=6*60*60*1000; // 6h pour l'historique et palmarès
 var CACHE_FIFA_TTL=24*60*60*1000; // 24h pour les stats FIFA
-var CACHE_FULL_TTL=6*60*60*1000; // 6h pour historique/stats
 var DB=[],me=null,isAdmin=false,presence='absent',inscrits=[];
 var currentPeriod='all',currentPeriodClasse='all',currentTel='';
 var selectedStatPlayer=null;
 var matchAnnule=false;
 var teamVoting=null,mvpVoting=null,fifaStatsAll={};
-var absentsConnus=[];
-var _presenceManuallySet=false; // true si joueur a cliqué dans les 10 dernières secondes
 var ponctuels=[],ponctuelLocked=false;
-var notifsCoupees=false;
 var palmaresMVP=[];
 var _playerToken='',_adminToken='';
 
@@ -555,57 +531,6 @@ function saveDataCache(d){try{localStorage.setItem(CACHE_KEY,JSON.stringify({dat
 function loadDataCache(){try{var c=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');if(c&&Date.now()-c.ts<CACHE_TTL)return c.data;}catch(e){}return null;}
 function saveFifaCache(d){try{localStorage.setItem(CACHE_FIFA_KEY,JSON.stringify({data:d,ts:Date.now()}));}catch(e){}}
 function loadFifaCache(){try{var c=JSON.parse(localStorage.getItem(CACHE_FIFA_KEY)||'null');if(c&&Date.now()-c.ts<CACHE_FIFA_TTL)return c.data;}catch(e){}return null;}
-function saveFullCache(d){try{localStorage.setItem(CACHE_FULL_KEY,JSON.stringify({data:d,ts:Date.now()}));}catch(e){}}
-function loadFullCache(){try{var c=JSON.parse(localStorage.getItem(CACHE_FULL_KEY)||'null');if(c&&Date.now()-c.ts<CACHE_FULL_TTL)return c.data;}catch(e){}return null;}
-
-function getConfirmedPresence(){
-  if(!me)return null;
-  try{
-    var raw=localStorage.getItem('calcetto_confirmed_'+me.name);
-    if(!raw)return null;
-    var c=JSON.parse(raw);
-    if(c&&c.date===getNextThursdayDateStr()&&(c.status==='present'||c.status==='absent'))return c.status;
-    // Si date différente ou status invalide → ignorer
-    return null;
-  }catch(e){}
-  return null;
-}
-
-// applyLiveData : données fraîches toujours (inscrits, équipes, MVP, ponctuels)
-function applyLiveData(d){
-  inscrits=d.inscrits||[];
-  matchAnnule=d.matchAnnule||false;
-  teamVoting=d.teamVoting||null;
-  mvpVoting=d.mvpVoting||null;
-  ponctuels=d.ponctuels||[];
-  ponctuelLocked=d.ponctuelLocked||false;
-  notifsCoupees=d.notifsCoupees||false;
-  updateNotifToggle();
-  absentsConnus=d.absents||[];
-  // Mettre à jour calcetto_confirmed_ uniquement si absents est dans la réponse (getLiveData)
-  if(me&&Array.isArray(d.absents)){
-    var myStatus=inscrits.indexOf(me.name)!==-1?'present':(absentsConnus.indexOf(me.name)!==-1?'absent':'pending');
-    if(myStatus==='pending'){
-      localStorage.removeItem('calcetto_confirmed_'+me.name);
-    } else {
-      try{localStorage.setItem('calcetto_confirmed_'+me.name,JSON.stringify({status:myStatus,date:getNextThursdayDateStr()}));}catch(e){}
-    }
-  }
-}
-
-// applyFullData : données cachables (historique, stats, palmarès)
-function applyFullData(d){
-  if(d.players&&d.players.length>0){
-    // Merge pts/history into DB without overwriting live data
-    DB=d.players;
-  }
-  palmaresMVP=d.palmaresMVP||palmaresMVP;
-  if(d.fifaStats&&Object.keys(d.fifaStats).length>0){
-    fifaStatsAll=d.fifaStats;saveFifaCache(fifaStatsAll);
-  }
-  saveFullCache(d);
-}
-
 function applyDataRes(dataRes,fromCache){
   // Données statiques (mises en cache) : historique, joueurs, palmares
   DB=dataRes.players||[];
@@ -618,8 +543,6 @@ function applyDataRes(dataRes,fromCache){
     mvpVoting=dataRes.mvpVoting||null;
     ponctuels=dataRes.ponctuels||[];
     ponctuelLocked=dataRes.ponctuelLocked||false;
-    notifsCoupees=dataRes.notifsCoupees||false;
-    updateNotifToggle();
   }
   // FIFA stats : cache 24h
   if(!fromCache&&dataRes.fifaStats&&Object.keys(dataRes.fifaStats).length>0){
@@ -644,8 +567,8 @@ function callSheet(action,params){
   var adminActions=['saveResults','cancelMatch','regenerateTeams','closeMVPVoting','resetAll','resetPonctuels',
     'notifyInscriptionsOuvertes','notifyInscriptionsClassiques','initMVPVoting','setPonctuelLock',
     'pauseNotifications','resumeNotifications','sendNotifLionel','sendNotifPlayer',
-    'setPlayerActive','getPlayersAdmin','addPlayer','clearPendingScore','getPendingScore','sendNotifAll','setNotifsCoupees','genererEquipesJeudi','notifyInscriptionsLundi'];
-  var authActions=['getData','getLiveData','getFullData','register','voteMVP','changePin','submitScore',
+    'setPlayerActive','getPlayersAdmin','addPlayer','clearPendingScore','getPendingScore','sendNotifAll'];
+  var authActions=['getData','register','voteMVP','changePin','submitScore',
     'addPonctuel','removePonctuel','saveOneSignalId','checkAccountActive'];
   if(adminActions.indexOf(action)!==-1&&_adminToken){
     url+='&adminToken='+encodeURIComponent(_adminToken);
@@ -678,13 +601,16 @@ function refreshData(){
   if(!me)return;
   var indicator=document.getElementById('ptr-indicator');
   indicator.textContent='🔄 Actualisation...';indicator.classList.add('visible');
-  callSheet('getLiveData').then(function(d){
-    applyLiveData(d);
+  callSheet('getData').then(function(dataRes){
+    applyDataRes(dataRes,false);
+    var joueur=null;for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===me.name.toLowerCase()){joueur=DB[i];break;}}
+    if(joueur)me=joueur;selectedStatPlayer=me;buildPlayerSelect();updateTabVisibility();
     var phaseNow=getCurrentPhase();var wasInscrit=inscrits.indexOf(me.name)!==-1;
-    var _pk='calcetto_presence_'+(me?me.name:'');var _ps=null;try{var _pr=JSON.parse(localStorage.getItem(_pk)||'null');if(_pr&&_pr.date===getNextThursdayDateStr())_ps=_pr.val;}catch(e){}var p;
-    if(phaseNow==='open_rotation'&&_ps==='present'){p='present';}else{p=wasInscrit?'present':'absent';}
+    var savedLocal=localStorage.getItem('calcetto_presence_'+(me?me.name:''));var p;
+    if(phaseNow==='open_rotation'&&savedLocal==='present'){p='present';}else{p=wasInscrit?'present':'absent';}
     setPresence(p,true);
-    updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();buildTeamTab();
+    buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();
+    updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();
     indicator.classList.remove('visible');
   }).catch(function(){indicator.classList.remove('visible');});
 }
@@ -700,28 +626,34 @@ window.addEventListener('load',function(){
     var cached=loadDataCache();
     var fifaCached=loadFifaCache();
     if(fifaCached)fifaStatsAll=fifaCached;
-    var fullCached=loadFullCache();
-    if(fullCached){
-      // On a du cache full → afficher l'app instantanément
-      applyFullData(fullCached);
+    if(cached){
+      applyDataRes(cached,true);
       var joueur=null;for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===session.name.toLowerCase()){joueur=DB[i];break;}}
       me=joueur||{name:session.name,pts:0,history:[]};isAdmin=session.admin;currentTel=session.tel;selectedStatPlayer=me;
       enterApp();
-      // getLiveData en arrière-plan : inscrits/équipes/MVP frais
-      callSheet('getLiveData').then(function(d){
-        applyLiveData(d);
-        if(!_presenceManuallySet){var p=getConfirmedPresence()||'pending';setPresence(p,true);}
-        updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();buildTeamTab();
+      // Rafraîchir en arrière-plan silencieusement
+      callSheet('getData').then(function(dataRes){
+        applyDataRes(dataRes,false);
+        var j=null;for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===me.name.toLowerCase()){j=DB[i];break;}}
+        if(j)me=j;selectedStatPlayer=me;
+        buildPlayerSelect();updateTabVisibility();
+        var phaseNow=getCurrentPhase();var wasInscrit=inscrits.indexOf(me.name)!==-1;
+        var savedLocal=localStorage.getItem('calcetto_presence_'+(me?me.name:''));var p;
+        if(phaseNow==='open_rotation'&&savedLocal==='present'){p='present';}else{p=wasInscrit?'present':'absent';}
+        setPresence(p,true);
+        buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();
+        updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();
+        if(teamVoting&&teamVoting.team1)buildTeamTab();
       }).catch(function(){});
-      // getFullData en arrière-plan si cache expiré bientôt (< 30min restantes) ou forcé
-      callSheet('getFullData').then(function(d){applyFullData(d);buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();buildPlayerSelect();updateTabVisibility();}).catch(function(){});
-      callSheet('checkAccountActive',{name:session.name}).then(function(chk){if(chk&&chk.active===false){doLogout();}}).catch(function(){});
+      // checkAccountActive en parallèle — déconnecte si compte désactivé
+      callSheet('checkAccountActive',{name:session.name}).then(function(chk){
+        if(chk&&chk.active===false){doLogout();}
+      }).catch(function(){});
     } else {
-      // Pas de cache : chargement en 2 appels parallèles
+      // Pas de cache : chargement classique avec overlay
       document.getElementById('loading-overlay').style.display='flex';
-      Promise.all([callSheet('getLiveData'),callSheet('getFullData')]).then(function(results){
-        var live=results[0],full=results[1];
-        applyLiveData(live);applyFullData(full);
+      callSheet('getData').then(function(dataRes){
+        applyDataRes(dataRes,false);
         var joueur=null;for(var i=0;i<DB.length;i++){if(DB[i].name.trim().toLowerCase()===session.name.toLowerCase()){joueur=DB[i];break;}}
         me=joueur||{name:session.name,pts:0,history:[]};isAdmin=session.admin;currentTel=session.tel;selectedStatPlayer=me;
         document.getElementById('loading-overlay').style.display='none';
@@ -783,10 +715,49 @@ function enterApp(){
     else{document.getElementById('cancel-match-zone').innerHTML='<div class="banner banner-warn" style="margin-bottom:10px;"><i class="ti ti-x"></i><span>Match annulé — les inscriptions sont bloquées.</span></div>';}
   }
   buildPlayerSelect();updateTabVisibility();
-  // Afficher immédiatement la présence depuis le cache local (toujours prioritaire)
-  var savedPresence=getConfirmedPresence()||'pending';
+  var phaseInit=getCurrentPhase();var wasInscritInit=inscrits.indexOf(me.name)!==-1;
+  var savedLocalInit=localStorage.getItem('calcetto_presence_'+(me?me.name:''));var savedPresence;
+  if(phaseInit==='open_rotation'&&savedLocalInit==='present'){savedPresence='present';}else{savedPresence=wasInscritInit?'present':'absent';}
   setPresence(savedPresence,true);buildStatPerso('all');buildStatClasse('all');buildStatRotation();updatePonctuelZone();
   setInterval(tickTimer,5000);tickTimer();
+
+  // Auto-refresh toutes les 2 min — silencieux, met à jour MVP/équipes sans action utilisateur
+  var _autoRefreshInterval=null;
+  function startAutoRefresh(){
+    if(_autoRefreshInterval)return;
+    _autoRefreshInterval=setInterval(function(){
+      if(!me)return;
+      callSheet('getLiveData').then(function(d){
+        applyLiveData(d);
+        // Rebuild Team tab si on y est ou si mvpVoting vient de s'ouvrir
+        var onTeamTab=document.getElementById('tab-team')&&document.getElementById('tab-team').style.display!=='none';
+        if(onTeamTab){buildTeamTab();}
+        updateListeZone();updateBannerZone();updatePonctuelZone();
+        if(!_presenceManuallySet){var p=getConfirmedPresence()||'pending';setPresence(p,true);}
+      }).catch(function(){});
+    },2*60*1000); // 2 minutes
+  }
+  function stopAutoRefresh(){if(_autoRefreshInterval){clearInterval(_autoRefreshInterval);_autoRefreshInterval=null;}}
+
+  // Pause quand l'app passe en arrière-plan, reprend au retour
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){stopAutoRefresh();}
+    else{
+      startAutoRefresh();
+      // Refresh immédiat au retour sur l'app
+      if(me){
+        callSheet('getLiveData').then(function(d){
+          applyLiveData(d);
+          var onTeamTab=document.getElementById('tab-team')&&document.getElementById('tab-team').style.display!=='none';
+          if(onTeamTab){buildTeamTab();}
+          updateListeZone();updateBannerZone();updatePonctuelZone();
+          if(!_presenceManuallySet){var p=getConfirmedPresence()||'pending';setPresence(p,true);}
+        }).catch(function(){});
+      }
+    }
+  });
+
+  startAutoRefresh();
 }
 
 function buildPlayerSelect(){
@@ -820,7 +791,7 @@ function getCurrentPhase(){
   else if(day===5){if(h<8)return 'closed';else if(h<12)return 'open_rotation';else return 'open_classic';}
   return 'open_classic';
 }
-function getNextThursday(){var now=new Date(),day=now.getDay();var diff=(4-day+7)%7;var d=new Date(now);d.setDate(now.getDate()+diff);d.setHours(21,0,0,0);return d;}
+function getNextThursday(){var now=new Date(),day=now.getDay();var diff=(4-day+7)%7;if(diff===0)diff=7;var d=new Date(now);d.setDate(now.getDate()+diff);d.setHours(21,0,0,0);return d;}
 function getLastThursday(){var now=new Date(),day=now.getDay();var daysAgo=(day-4+7)%7;var d=new Date(now);d.setDate(now.getDate()-daysAgo);d.setHours(21,0,0,0);return d;}
 function isWindowOpen(){return getCurrentPhase()==='open_rotation';}
 
@@ -834,13 +805,11 @@ function tickTimer(){
   updateBoutons();updateListeZone();
 }
 function updateBoutons(){
-  var phase=getCurrentPhase();
-  var btnP=document.getElementById('btn-present'),btnPd=document.getElementById('btn-pending'),btnA=document.getElementById('btn-absent');
-  if(!btnP||!btnPd||!btnA)return;
-  if(matchAnnule&&!isAdmin){btnP.disabled=true;btnPd.disabled=true;btnA.disabled=true;return;}
+  var phase=getCurrentPhase();var btnP=document.getElementById('btn-present'),btnA=document.getElementById('btn-absent');if(!btnP||!btnA)return;
+  if(matchAnnule&&!isAdmin){btnP.disabled=true;btnA.disabled=true;return;}
   var phaseFermee=!isAdmin&&phase==='closed';
   var groupeComplet=!isAdmin&&phase==='open_classic'&&inscrits.length>=10&&inscrits.indexOf(me?me.name:'')===-1;
-  btnP.disabled=phaseFermee||groupeComplet;btnPd.disabled=phaseFermee;btnA.disabled=phaseFermee;
+  btnP.disabled=phaseFermee||groupeComplet;btnA.disabled=phaseFermee;
 }
 
 function setPresence(val,silent){
@@ -850,87 +819,49 @@ function setPresence(val,silent){
     if(phase==='closed'){alert("Les inscriptions sont fermées jusqu'à vendredi 8h00.");return;}
     if(phase==='open_classic'&&val==='present'&&inscrits.length>=10&&inscrits.indexOf(me.name)===-1){alert("Le groupe est complet (10/10). Tu ne peux plus t'inscrire.");return;}
   }
-  var prev=presence;
+  // Optimistic UI : appliquer immédiatement sans attendre GAS
   presence=val;
-  if(!silent){
-    _presenceManuallySet=true;
-    clearTimeout(window._presManualTimer);
-    window._presManualTimer=setTimeout(function(){_presenceManuallySet=false;},10000);
-    var _presKey='calcetto_presence_'+(me?me.name:'');
-    localStorage.setItem(_presKey,JSON.stringify({val:val,date:getNextThursdayDateStr()}));
-    try{
-      if(val==='pending'){localStorage.removeItem('calcetto_confirmed_'+(me?me.name:''));}
-      else{localStorage.setItem('calcetto_confirmed_'+(me?me.name:''),JSON.stringify({status:val,date:getNextThursdayDateStr()}));}
-    }catch(e){}
-  }
-  // Mise à jour optimiste inscrits/absents
-  if(val==='present'){
-    if(inscrits.indexOf(me.name)===-1)inscrits.push(me.name);
-    absentsConnus=absentsConnus.filter(function(n){return n!==me.name;});
-  } else if(val==='absent'){
-    inscrits=inscrits.filter(function(n){return n!==me.name;});
-    if(absentsConnus.indexOf(me.name)===-1)absentsConnus.push(me.name);
-  } else {
-    inscrits=inscrits.filter(function(n){return n!==me.name;});
-    absentsConnus=absentsConnus.filter(function(n){return n!==me.name;});
-  }
+  if(!silent)localStorage.setItem('calcetto_presence_'+(me?me.name:''),val);
+  if(val==='present'){if(inscrits.indexOf(me.name)===-1)inscrits.push(me.name);}
+  else{inscrits=inscrits.filter(function(n){return n!==me.name;});}
   _applyPresenceUI(val);
   updateBannerZone();updateListeZone();updateBoutons();updatePonctuelZone();
   if(!silent){
-    var status=val==='present'?'present':(val==='absent'?'absent':'pending');
+    var status=val==='present'?'present':'absent';
     callSheet('register',{player:me.name,status:status}).then(function(res){
       if(res&&res.inscrits){
         inscrits=res.inscrits;
-        if(res.absents)absentsConnus=res.absents;
+        // Corriger si le serveur a une réponse différente (ex: exclu par rotation)
         var confirmedPresent=inscrits.indexOf(me.name)!==-1;
-        var confirmedAbsent=absentsConnus.indexOf(me.name)!==-1;
-        if(val==='present'&&!confirmedPresent){presence='pending';_applyPresenceUI('pending');}
+        if(val==='present'&&!confirmedPresent){presence='absent';_applyPresenceUI('absent');}
         else{_applyPresenceUI(presence);}
         if(res.teamVoting)teamVoting=res.teamVoting;
       }
       updateListeZone();updateBoutons();updateBannerZone();updatePonctuelZone();
     }).catch(function(){
+      // En cas d'erreur réseau, revenir à l'état précédent
+      var prev=val==='present'?'absent':'present';
       presence=prev;
       if(prev==='present'){if(inscrits.indexOf(me.name)===-1)inscrits.push(me.name);}
-      else if(prev==='absent'){if(absentsConnus.indexOf(me.name)===-1)absentsConnus.push(me.name);}
-      else{inscrits=inscrits.filter(function(n){return n!==me.name;});absentsConnus=absentsConnus.filter(function(n){return n!==me.name;});}
+      else{inscrits=inscrits.filter(function(n){return n!==me.name;});}
       _applyPresenceUI(prev);
       updateListeZone();updateBoutons();updateBannerZone();
     });
   }
 }
 function _applyPresenceUI(val){
-  var bp=document.getElementById('btn-present'),bpd=document.getElementById('btn-pending'),ba=document.getElementById('btn-absent');
-  if(!bp||!bpd||!ba)return;
-  bp.className='btn-presence'+(val==='present'?' selected-present':'');
-  bpd.className='btn-presence'+(val==='pending'?' selected-pending':'');
-  ba.className='btn-presence'+(val==='absent'?' selected-absent':'');
-  // absent-banner géré par updateBannerZone, pas besoin de toggle ici
+  document.getElementById('btn-present').classList.toggle('selected',val==='present');
+  document.getElementById('btn-absent').classList.toggle('selected',val==='absent');
+  document.getElementById('absent-banner').classList.toggle('show',val==='absent');
 }
 
 function updateBannerZone(){
   var el=document.getElementById('banner-zone');if(!el||!me)return;
-  if(matchAnnule){el.innerHTML='<div class="banner banner-warn"><i class="ti ti-x"></i><span>❌ Le match de jeudi est annulé. Les inscriptions sont fermées jusqu&#39;au prochain match.</span></div>';return;}
+  if(matchAnnule){el.innerHTML='<div class="banner banner-warn"><i class="ti ti-x"></i><span>❌ Le match de jeudi est annulé. Les inscriptions sont fermées jusqu\'au prochain match.</span></div>';return;}
   var phase=getCurrentPhase();
-  // Lire l'état depuis le bouton actif (source de vérité fiable)
-  var state='pending';
-  var bP=document.getElementById('btn-present'),bPd=document.getElementById('btn-pending'),bA=document.getElementById('btn-absent');
-  if(bP&&bP.classList.contains('selected-present'))state='present';
-  else if(bA&&bA.classList.contains('selected-absent'))state='absent';
-  if(state==='present'){
-    if(isWindowOpen()&&(me.pts||0)>=5)el.innerHTML='';
-    else el.innerHTML='<div class="banner banner-success"><i class="ti ti-circle-check"></i><span>Tu es inscrit pour jeudi !</span></div>';
-  } else if(state==='absent'){
-    el.innerHTML='<div class="banner banner-danger"><i class="ti ti-x"></i><span>Tu es marqué absent pour ce jeudi.</span></div>';
-  } else {
-    if(phase==='open_classic'&&inscrits.length>=10&&inscrits.indexOf(me.name)===-1){
-      el.innerHTML='<div class="banner banner-warn"><i class="ti ti-lock"></i><span>Groupe complet (10/10). Plus de place disponible.</span></div>';
-    } else if(phase==='open_classic'||phase==='open_rotation'){
-      el.innerHTML='<div class="banner banner-info" style="background:rgba(255,149,0,.1);border-color:rgba(255,149,0,.3);"><i class="ti ti-clock" style="color:#ff9500;"></i><span style="color:#ff9500;">Tu n&#39;as pas encore répondu pour jeudi.</span></div>';
-    } else {
-      el.innerHTML='';
-    }
-  }
+  if(presence==='present'){if(isWindowOpen()&&(me.pts||0)>=5)el.innerHTML='';else el.innerHTML='<div class="banner banner-success"><i class="ti ti-circle-check"></i><span>Tu es inscrit pour jeudi !</span></div>';}
+  else if(phase==='open_classic'&&inscrits.length>=10){el.innerHTML='<div class="banner banner-warn"><i class="ti ti-lock"></i><span>Groupe complet (10/10). Plus de place disponible.</span></div>';}
+  else el.innerHTML='';
 }
 
 function updateListeZone(){
@@ -940,13 +871,7 @@ function updateListeZone(){
   var tousInscrits=inscrits.concat(ponctuelsNoms.filter(function(n){return inscrits.indexOf(n)===-1;}));
   if(!tousInscrits.length){el.innerHTML='<div class="locked-card"><div class="locked-text">Aucun joueur inscrit pour l\'instant.</div></div>';return;}
   var sorted=tousInscrits.slice().sort(function(a,b){var pa=0,pb=0;for(var i=0;i<DB.length;i++){if(DB[i].name===a)pa=DB[i].pts||0;if(DB[i].name===b)pb=DB[i].pts||0;}return pb-pa;});
-  // Bouton absents (visible seulement en open_classic)
-  var phase=getCurrentPhase();
-  var absentsBtn='';
-  if(phase==='open_classic'||isAdmin){
-    absentsBtn='<button onclick="showAbsentsPopup()" style="background:rgba(255,59,48,.1);border:1px solid rgba(255,59,48,.3);color:var(--danger);font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;cursor:pointer;">❌ Absents ('+absentsConnus.length+')</button>';
-  }
-  var html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><div class="section-label" style="margin:0;">Joueurs inscrits</div>'+absentsBtn+'</div><div class="liste-card"><div class="liste-header"><span>Liste</span><span>'+tousInscrits.length+'/10</span></div>';
+  var html='<div class="section-label">Joueurs inscrits</div><div class="liste-card"><div class="liste-header"><span>Liste</span><span>'+tousInscrits.length+'/10</span></div>';
   sorted.forEach(function(name,i){
     var pts=0;for(var j=0;j<DB.length;j++){if(DB[j].name===name)pts=DB[j].pts||0;}
     var isPonctuel=ponctuelsNoms.indexOf(name)!==-1;var exclu=isWindowOpen()&&tousInscrits.length>10&&i<tousInscrits.length-10;var isMe=name===me.name;
@@ -973,14 +898,6 @@ function updateListeZone(){
   });
   el.innerHTML=html+'</div>';
 }
-
-function showAbsentsPopup(){
-  var el=document.getElementById('absents-list');
-  if(absentsConnus.length===0){el.innerHTML='<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Aucun joueur absent pour l&#39;instant.</div>';}
-  else{el.innerHTML=absentsConnus.map(function(n){return'<div class="player-row"><div class="player-avatar">'+n.substring(0,2).toUpperCase()+'</div><span class="player-name">'+n+'</span></div>';}).join('');}
-  document.getElementById('absents-overlay').classList.add('show');
-}
-function closeAbsentsPopup(){document.getElementById('absents-overlay').classList.remove('show');}
 
 function getFiltered(player,period){
   if(period==='all')return(player.history||[]);
@@ -1100,34 +1017,6 @@ function buildNotifSelect(){
   var sel=document.getElementById('notif-player-select');if(!sel)return;sel.innerHTML='';
   DB.map(function(p){return p.name;}).forEach(function(n){var opt=document.createElement('option');opt.value=n;opt.textContent=n;sel.appendChild(opt);});
 }
-function updateNotifToggle(){
-  var btn=document.getElementById('btn-notif-toggle');
-  var lbl=document.getElementById('notif-status-label');
-  var hdr=document.getElementById('notif-switch-label');
-  if(!btn||!lbl)return;
-  if(notifsCoupees){
-    btn.textContent='🔔 Réactiver';btn.style.background='#00c853';btn.style.color='#fff';
-    lbl.textContent='🔕 Notifications coupées';lbl.style.color='#ff4444';
-    if(hdr)hdr.textContent='🔕 Notifications (coupées)';
-  }else{
-    btn.textContent='🔕 Couper';btn.style.background='#ff4444';btn.style.color='#fff';
-    lbl.textContent='✅ Notifications actives';lbl.style.color='#00c853';
-    if(hdr)hdr.textContent='🔔 Notifications (actives)';
-  }
-}
-function toggleNotifs(){
-  var newVal=!notifsCoupees;
-  var msg=newVal?'Couper toutes les notifications push ?':'Réactiver les notifications push ?';
-  if(!confirm(msg))return;
-  var btn=document.getElementById('btn-notif-toggle');
-  btn.disabled=true;btn.textContent='...';
-  callSheet('setNotifsCoupees',{val:newVal?'true':'false'}).then(function(res){
-    if(res.success){notifsCoupees=newVal;updateNotifToggle();}
-    else alert('Erreur : '+(res.error||'inconnue'));
-    btn.disabled=false;
-  }).catch(function(e){alert('Erreur réseau');btn.disabled=false;});
-}
-
 function sendNotifIndividuelle(){
   var player=document.getElementById('notif-player-select').value;var title=document.getElementById('notif-title-input').value.trim();var msg=document.getElementById('notif-msg-input').value.trim();var resEl=document.getElementById('notif-result');
   if(!title||!msg){resEl.style.display='block';resEl.style.color='var(--danger)';resEl.textContent='⚠️ Titre et message obligatoires.';return;}resEl.style.display='none';
@@ -1306,27 +1195,15 @@ function doValidateTeams(){
   callSheet('regenerateTeams',{inscrits:JSON.stringify(team1save.concat(team2save))}).then(function(res){if(res&&res.team1){teamVoting=res;}teamVoting.team1=team1save;teamVoting.team2=team2save;teamVoting.eligible=team1save.concat(team2save);teamsPendingValidation=false;buildTeamTab();});
 }
 
-function getNextThursdayDateStr(){
-  var now=new Date();var paris=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Paris'}));
-  var day=paris.getDay();var diff=(4-day+7)%7;
-  var next=new Date(paris);next.setDate(paris.getDate()+diff);
-  return next.getFullYear()+'-'+String(next.getMonth()+1).padStart(2,'0')+'-'+String(next.getDate()).padStart(2,'0');
-}
 function getNextThursdayLabel(){
-  var now=new Date();var paris=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Paris'}));var day=paris.getDay();var diff=(4-day+7)%7;var next=new Date(paris);next.setDate(paris.getDate()+diff);
+  var now=new Date();var paris=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Paris'}));var day=paris.getDay();var diff=(4-day+7)%7;if(diff===0)diff=7;var next=new Date(paris);next.setDate(paris.getDate()+diff);
   var mois=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
   return 'jeudi '+next.getDate()+' '+mois[next.getMonth()];
 }
 
 function buildTeamTab(){
   var el=document.getElementById('team-content');
-  var nextDateStr=getNextThursdayDateStr();
-  // Si mvpVoting actif (pas encore clôturé samedi 12h), on garde l'affichage même si semaine changée
-  var mvpStillActive=mvpVoting&&mvpVoting.candidates&&!mvpVoting.closed;
-  var teamsForThisWeek=teamVoting&&teamVoting.team1&&teamVoting.date===nextDateStr;
-  // Équipes de la semaine passée mais MVP encore ouvert → on affiche quand même
-  var teamsLastWeek=teamVoting&&teamVoting.team1&&!teamsForThisWeek&&mvpStillActive;
-  if(!teamsForThisWeek&&!teamsLastWeek){
+  if(!teamVoting||!teamVoting.team1){
     var label=getNextThursdayLabel();
     el.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;gap:12px;"><div style="font-size:36px;">⚽</div><div style="font-size:16px;font-weight:600;color:var(--silver-light);">Équipes du '+label+'</div><div style="font-size:13px;color:var(--text-muted);text-align:center;max-width:280px;line-height:1.5;">Les équipes seront affichées jeudi à 12h si le groupe est complet.</div></div>';
     return;
@@ -1480,12 +1357,5 @@ function doVoteMVP(candidate){
   callSheet('voteMVP',{player:me.name,candidate:candidate}).then(function(res){if(res.error){alert(res.error);return;}mvpVoting.votes=res.votes;mvpVoting.myVote=candidate;if(!mvpVoting.voters)mvpVoting.voters=[];mvpVoting.voters.push(me.name);if(res.closed)mvpVoting.closed=true;buildMVPTab();if(teamVoting)buildTeamTab();});
 }
 </script>
-<div class="absents-popup-overlay" id="absents-overlay" onclick="if(event.target===this)closeAbsentsPopup()">
-  <div class="absents-popup">
-    <h3>❌ Joueurs absents</h3>
-    <div id="absents-list"></div>
-    <button class="absents-popup-close" onclick="closeAbsentsPopup()">Fermer</button>
-  </div>
-</div>
 </body>
 </html>
