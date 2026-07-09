@@ -593,7 +593,7 @@ function callSheet(action,params){
   var adminActions=['saveResults','cancelMatch','regenerateTeams','closeMVPVoting','resetAll','resetPonctuels',
     'notifyInscriptionsOuvertes','notifyInscriptionsClassiques','initMVPVoting','setPonctuelLock',
     'pauseNotifications','resumeNotifications','sendNotifLionel','sendNotifPlayer',
-    'setPlayerActive','getPlayersAdmin','addPlayer','clearPendingScore','getPendingScore','sendNotifAll','setNotifsCoupees'];
+    'setPlayerActive','getPlayersAdmin','addPlayer','clearPendingScore','getPendingScore','sendNotifAll','setNotifsCoupees','saveTeams'];
   var authActions=['getData','register','voteMVP','changePin','submitScore',
     'addPonctuel','removePonctuel','saveOneSignalId','checkAccountActive'];
   if(adminActions.indexOf(action)!==-1&&_adminToken){
@@ -708,6 +708,7 @@ window.addEventListener('load',function(){
         if(newP!==presence)setPresence(newP,true);
         updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();
         if(teamVoting&&teamVoting.team1)buildTeamTab();
+        if(isAdmin)buildAdminList();
       }).catch(function(){});
       // checkAccountActive en parallèle — déconnecte si compte désactivé
       callSheet('checkAccountActive',{name:session.name}).then(function(chk){
@@ -786,6 +787,7 @@ function doLogin(){
         saveConfirmedPresence(p);setPresence(p,true);
         buildStatPerso('all');buildStatClasse('all');buildStatRotation();
         updateListeZone();updateBannerZone();updatePonctuelZone();tickTimer();
+        if(isAdmin)buildAdminList();
       }).catch(function(){});
     })
     .catch(function(){document.getElementById('loading-overlay').style.display='none';document.getElementById('pin-error').textContent='Erreur serveur. Réessaie.';document.getElementById('pin-error').style.display='block';});
@@ -914,7 +916,7 @@ function getCurrentPhase(){
   else if(day===5){if(h<8)return 'closed';else if(h<12)return 'open_rotation';else return 'open_classic';}
   return 'open_classic';
 }
-function getNextThursday(){var now=new Date(),day=now.getDay();var diff=(4-day+7)%7;if(diff===0)diff=7;var d=new Date(now);d.setDate(now.getDate()+diff);d.setHours(21,0,0,0);return d;}
+function getNextThursday(){var now=new Date();var paris=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Paris'}));var day=paris.getDay();var diff=(4-day+7)%7;var d=new Date(now);d.setDate(now.getDate()+diff);d.setHours(21,0,0,0);return d;}
 function getLastThursday(){var now=new Date(),day=now.getDay();var daysAgo=(day-4+7)%7;var d=new Date(now);d.setDate(now.getDate()-daysAgo);d.setHours(21,0,0,0);return d;}
 function isWindowOpen(){return getCurrentPhase()==='open_rotation';}
 
@@ -1373,12 +1375,19 @@ function doValidateTeams(){
   if(!confirm('Valider et sauvegarder ces équipes ?'))return;
   var btn=document.getElementById('btn-validate-teams');if(btn){btn.disabled=true;btn.textContent='⏳ Sauvegarde...';}
   var tv=teamVoting;var team1save=tv.team1.slice();var team2save=tv.team2.slice();
-  tv.votesOui=0;tv.votesNon=0;tv.voters=[];tv.eligible=team1save.concat(team2save);
-  callSheet('regenerateTeams',{inscrits:JSON.stringify(team1save.concat(team2save))}).then(function(res){if(res&&res.team1){teamVoting=res;}teamVoting.team1=team1save;teamVoting.team2=team2save;teamVoting.eligible=team1save.concat(team2save);teamsPendingValidation=false;buildTeamTab();});
+  // Sauvegarder les équipes manuelles directement (sans recalculer)
+  callSheet('saveTeams',{team1:JSON.stringify(team1save),team2:JSON.stringify(team2save)}).then(function(res){
+    if(res&&res.error){alert('Erreur: '+res.error);if(btn){btn.disabled=false;btn.textContent='✅ Valider ces équipes';}return;}
+    teamVoting.team1=team1save;teamVoting.team2=team2save;teamVoting.eligible=team1save.concat(team2save);
+    teamVoting.votesOui=0;teamVoting.votesNon=0;teamVoting.voters=[];
+    teamsPendingValidation=false;
+    if(btn){btn.disabled=false;}
+    buildTeamTab();
+  }).catch(function(){alert('Erreur réseau');if(btn){btn.disabled=false;btn.textContent='✅ Valider ces équipes';}});
 }
 
 function getNextThursdayLabel(){
-  var now=new Date();var paris=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Paris'}));var day=paris.getDay();var diff=(4-day+7)%7;if(diff===0)diff=7;var next=new Date(paris);next.setDate(paris.getDate()+diff);
+  var now=new Date();var paris=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Paris'}));var day=paris.getDay();var diff=(4-day+7)%7;var next=new Date(paris);next.setDate(paris.getDate()+diff);
   var mois=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
   return 'jeudi '+next.getDate()+' '+mois[next.getMonth()];
 }
