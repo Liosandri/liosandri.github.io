@@ -659,6 +659,7 @@ function refreshData(){
     mvpVoting=d.mvpVoting||null;
     ponctuels=d.ponctuels||[];
     ponctuelLocked=d.ponctuelLocked||false;
+        if(d.rotationPts&&DB&&DB.length>0){DB.forEach(function(p2){if(d.rotationPts[p2.name]!==undefined)p2.pts=d.rotationPts[p2.name];});}
     var wasInscrit=inscrits.indexOf(me.name)!==-1;
     var p;
     if(wasInscrit){p='present';}
@@ -701,6 +702,7 @@ window.addEventListener('load',function(){
         mvpVoting=d.mvpVoting||null;
         ponctuels=d.ponctuels||[];
         ponctuelLocked=d.ponctuelLocked||false;
+        if(d.rotationPts&&DB&&DB.length>0){DB.forEach(function(p2){if(d.rotationPts[p2.name]!==undefined)p2.pts=d.rotationPts[p2.name];});}
         if(d.notifsCoupees!==undefined){notifsCoupees=d.notifsCoupees;updateNotifToggle();}
         var wasInscrit=inscrits.indexOf(me.name)!==-1;
         var newP=wasInscrit?'present':(absentsConnus.indexOf(me.name)!==-1?'absent':'pending');
