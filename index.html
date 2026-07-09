@@ -1168,7 +1168,7 @@ function validatePendingScoreFromServer(){
   if(result==='nul'){team1.concat(team2).forEach(function(n){results[n]='V';});}
   else if(result==='team1'){team1.forEach(function(n){results[n]='V';});team2.forEach(function(n){results[n]='D';});}
   else{team2.forEach(function(n){results[n]='V';});team1.forEach(function(n){results[n]='D';});}
-  callSheet('saveResults',{results:JSON.stringify(results)}).then(function(){callSheet('clearPendingScore',{});clearPendingScore();alert('✅ Résultats validés !');location.reload();}).catch(function(err){alert('Erreur: '+err.message);});
+  callSheet('saveResults',{results:JSON.stringify(results)}).then(function(){callSheet('clearPendingScore',{});clearPendingScore();try{localStorage.removeItem('calcetto_full_cache');}catch(e){}alert('✅ Résultats validés !');location.reload();}).catch(function(err){alert('Erreur: '+err.message);});
 }
 function rejectPendingScoreServer(){if(!confirm('Rejeter le score proposé ?'))return;callSheet('clearPendingScore',{}).then(function(){clearPendingScore();buildAdminScorePending();}).catch(function(){clearPendingScore();buildAdminScorePending();});}
 function getPendingScore(){try{return JSON.parse(localStorage.getItem('calcetto_pending_score')||'null');}catch(e){return null;}}
@@ -1190,7 +1190,7 @@ function saveResults(){
     else results[name]='';
   });
   var btn=document.getElementById('save-btn');btn.textContent='Enregistrement...';btn.disabled=true;
-  callSheet('saveResults',{results:JSON.stringify(results)}).then(function(){clearPendingScore();alert('✅ Résultats sauvegardés !');location.reload();}).catch(function(err){alert('Erreur: '+err.message);btn.textContent='💾 Enregistrer';btn.disabled=false;});
+  callSheet('saveResults',{results:JSON.stringify(results)}).then(function(){clearPendingScore();try{localStorage.removeItem('calcetto_full_cache');}catch(e){}alert('✅ Résultats sauvegardés !');location.reload();}).catch(function(err){alert('Erreur: '+err.message);btn.textContent='💾 Enregistrer';btn.disabled=false;});
 }
 function toggleAdminSection(id){
   var body=document.getElementById('body-'+id);var header=body?body.previousElementSibling:null;if(!body)return;
