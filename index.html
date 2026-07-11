@@ -660,6 +660,8 @@ function refreshData(){
     ponctuels=d.ponctuels||[];
     ponctuelLocked=d.ponctuelLocked||false;
         if(d.rotationPts&&DB&&DB.length>0){DB.forEach(function(p2){if(d.rotationPts[p2.name]!==undefined)p2.pts=d.rotationPts[p2.name];});}
+        if(d.palmaresMVP){palmaresMVP=d.palmaresMVP;}
+
     var wasInscrit=inscrits.indexOf(me.name)!==-1;
     var p;
     if(wasInscrit){p='present';}
@@ -703,6 +705,8 @@ window.addEventListener('load',function(){
         ponctuels=d.ponctuels||[];
         ponctuelLocked=d.ponctuelLocked||false;
         if(d.rotationPts&&DB&&DB.length>0){DB.forEach(function(p2){if(d.rotationPts[p2.name]!==undefined)p2.pts=d.rotationPts[p2.name];});if(me&&d.rotationPts[me.name]!==undefined){me.pts=d.rotationPts[me.name];var tp=document.getElementById('top-pts');if(tp)tp.textContent=(me.pts||0)+' pt'+((me.pts||0)>1?'s':'')+' de rotation';}}
+        if(d.palmaresMVP){palmaresMVP=d.palmaresMVP;}
+
         if(d.notifsCoupees!==undefined){notifsCoupees=d.notifsCoupees;updateNotifToggle();}
         var wasInscrit=inscrits.indexOf(me.name)!==-1;
         var newP=wasInscrit?'present':(absentsConnus.indexOf(me.name)!==-1?'absent':'pending');
@@ -1513,7 +1517,7 @@ function buildMVPBandeauTeamTab(){
   var ponctuelsNoms=ponctuels?ponctuels.map(function(p){return typeof p==='object'?p.nom:p;}):[];
   if(isClosed){var maxV=0,winner='';Object.keys(mv.votes||{}).forEach(function(n){if((mv.votes[n]||0)>maxV){maxV=mv.votes[n];winner=n;}});return'<div class="mvp-winner-card" style="margin-top:12px;"><div style="font-size:28px;">🏆</div><div class="mvp-winner-name">'+winner+'</div><div style="font-size:12px;color:var(--text-muted);">MVP · '+maxV+' vote'+(maxV>1?'s':'')+'</div></div>';}
   if(!isElig){return'<div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;padding:10px;">👀 Vote MVP réservé aux joueurs du match</div>';}
-  if(hasVoted){var totalV=0;Object.values(mv.votes||{}).forEach(function(v){totalV+=v;});return'<div style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:10px;padding:10px;"><span style="color:var(--gold);">✔</span> Vote MVP enregistré · '+totalV+'/'+(mv.candidates.length)+' ont voté</div>';}
+  if(hasVoted){var totalV=0;Object.values(mv.votes||{}).forEach(function(v){totalV+=v;});return'<div style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:10px;padding:10px;"><span style="color:var(--gold);">✔</span> Vote MVP enregistré · '+(isAdmin?totalV+'/'+(mv.candidates.length)+' ont voté':'Vote enregistré')+'</div>';}
   return'<div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;padding:8px;">🏆 Clique sur un joueur pour voter MVP · Interdit de voter pour toi-même</div>';
 }
 
@@ -1545,7 +1549,7 @@ function buildMVPTab(){
   if(isClosed){el.innerHTML='<div class="mvp-winner-card"><div style="font-size:48px;">🏆</div><div class="mvp-winner-name">'+winner+'</div><div style="font-size:13px;color:var(--text-muted);margin-top:4px;">MVP du '+mv.date+'</div><div style="font-size:13px;color:var(--gold);margin-top:6px;">'+maxV+' vote'+(maxV>1?'s':'')+' sur '+totalVotes+'</div></div><div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;">Vote clôturé</div>';return;}
   if(!isElig){el.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;">👀 Vote MVP réservé aux joueurs du match</div>';return;}
   el.innerHTML='<div class="banner banner-info" style="margin-bottom:12px;"><i class="ti ti-trophy"></i><span>Vote sur le terrain (onglet Équipes) ou ici — tu ne peux pas voter pour toi-même</span></div><div class="mvp-grid">'+
-    mv.candidates.map(function(name){if(name===me.name)return'';var votes=mv.votes[name]||0;var isWin=name===winner&&maxV>0&&hasVoted;var isPonctuel=ponctuels&&ponctuels.some(function(p){return(typeof p==='object'?p.nom:p)===name;});var canVote=!hasVoted&&!isPonctuel;return'<div class="mvp-cand'+(hasVoted?' voted':'')+(isPonctuel?' ponctuel':'')+'" onclick="'+(canVote?'doVoteMVP("'+name+'")':'')+'"><div class="cav" style="'+(isWin?'background:rgba(212,175,55,0.2);border-color:var(--gold);':'')+(isPonctuel?'opacity:0.6;':'')+'">'+name.substring(0,2).toUpperCase()+'</div><div class="cname">'+name+(isPonctuel?' <span style="font-size:10px;color:var(--text-muted);">(ext.)</span>':'')+'</div>'+(hasVoted?'<div class="cvotes">'+votes+'</div><div class="cvlbl">vote'+(votes>1?'s':'')+'</div>':isPonctuel?'<div style="font-size:11px;color:var(--text-muted);">Spectateur</div>':'<div style="font-size:11px;color:var(--text-muted);">Voter</div>')+'</div>';}).join('')+
+    mv.candidates.map(function(name){if(name===me.name)return'';var votes=mv.votes[name]||0;var isWin=name===winner&&maxV>0&&hasVoted;var isPonctuel=ponctuels&&ponctuels.some(function(p){return(typeof p==='object'?p.nom:p)===name;});var canVote=!hasVoted&&!isPonctuel;return'<div class="mvp-cand'+(hasVoted?' voted':'')+(isPonctuel?' ponctuel':'')+'" onclick="'+(canVote?'doVoteMVP("'+name+'")':'')+'"><div class="cav" style="'+(isWin?'background:rgba(212,175,55,0.2);border-color:var(--gold);':'')+(isPonctuel?'opacity:0.6;':'')+'">'+name.substring(0,2).toUpperCase()+'</div><div class="cname">'+name+(isPonctuel?' <span style="font-size:10px;color:var(--text-muted);">(ext.)</span>':'')+'</div>'+(hasVoted?'<div class="cvotes">'+(isAdmin||isClosed?votes:'?')+'</div><div class="cvlbl">vote'+(votes>1?'s':'')+'</div>':isPonctuel?'<div style="font-size:11px;color:var(--text-muted);">Spectateur</div>':'<div style="font-size:11px;color:var(--text-muted);">Voter</div>')+'</div>';}).join('')+
     '</div>'+(!hasVoted?'<div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:10px;">'+totalVotes+' vote'+(totalVotes>1?'s':'')+' · '+mv.candidates.length+' joueurs</div>':'<div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;">✔ Vote enregistré · '+totalVotes+'/'+mv.candidates.length+' ont voté</div>');
 }
 function doVoteMVP(candidate){
