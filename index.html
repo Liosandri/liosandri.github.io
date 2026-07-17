@@ -1428,8 +1428,15 @@ function buildTeamTab(){
   var t1tokens=tv.team1.map(function(n){return makeToken(n,'t1');}).join('');
   setTimeout(enableDragDrop,150);
 
+  // Vote équipes fermé après jeudi 19h
+  var now=new Date();var paris=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Paris'}));
+  var tvDay=paris.getDay();var tvH=paris.getHours();
+  var teamVoteOpen=!(tvDay===4&&tvH>=19)&&!(tvDay!==4);
+  // Aussi ouvert pendant le jeudi avant 19h
+  teamVoteOpen=(tvDay===4&&tvH>=12&&tvH<19);
   var voteHtml='';
-  if(!isEligible){voteHtml='<div style="text-align:center;font-size:13px;color:var(--text-muted);padding:8px 0;">👀 Vote réservé aux 10 joueurs retenus</div>';}
+  if(!teamVoteOpen&&!hasVoted){voteHtml='<div style="text-align:center;font-size:13px;color:var(--text-muted);padding:8px 0;">⏰ Vote équipes fermé (jeudi 12h-19h uniquement)</div>';}
+  else if(!isEligible){voteHtml='<div style="text-align:center;font-size:13px;color:var(--text-muted);padding:8px 0;">👀 Vote réservé aux 10 joueurs retenus</div>';}
   else if(!hasVoted){voteHtml='<div class="vote-btns"><button class="vote-btn v1" onclick="doVoteTeam(&quot;oui&quot;)" style="flex:1;">✅ OUI<br><small style="font-weight:400;font-size:11px">Équipes équilibrées</small></button><button class="vote-btn v2" onclick="doVoteTeam(&quot;non&quot;)" style="flex:1;">❌ NON<br><small style="font-weight:400;font-size:11px">Mauvaise répartition</small></button></div>';}
   else{voteHtml='<div style="text-align:center;font-size:13px;color:var(--text-muted);padding:8px 0;">✔ Vote enregistré</div>';}
 
