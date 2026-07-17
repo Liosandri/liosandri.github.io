@@ -963,7 +963,7 @@ function setPresence(val,silent){
   _applyPresenceUI(val);
   updateBannerZone();updateListeZone();updateBoutons();updatePonctuelZone();
   if(!silent&&val!=='pending'){
-    callSheet('register',{player:me.name,status:val}).then(function(res){
+    callSheet('register',{player:me.name,status:val,osId:window._currentOsId||''}).then(function(res){
       if(res&&res.inscrits){
         inscrits=res.inscrits;
         // Corriger si le serveur a une réponse différente (ex: exclu par rotation)
@@ -1339,7 +1339,7 @@ function initNotifButton(){
 }
 function saveOneSignalIdToServer(){
   if(!me||!me.name)return;
-  try{OneSignalDeferred.push(function(OneSignal){var isSubscribed=OneSignal.User.PushSubscription.optedIn;var subId=OneSignal.User.PushSubscription.id;if(isSubscribed&&subId){callSheet('saveOneSignalId',{player:me.name,osid:subId}).catch(function(){});}});}catch(e){}
+  try{OneSignalDeferred.push(function(OneSignal){var isSubscribed=OneSignal.User.PushSubscription.optedIn;var subId=OneSignal.User.PushSubscription.id;if(isSubscribed&&subId){window._currentOsId=subId;callSheet('saveOneSignalId',{player:me.name,osid:subId}).catch(function(){});}});}catch(e){}
 }
 function updateNotifButton(){
   var btn=document.getElementById('btn-notif-topbar');if(!btn)return;
