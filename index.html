@@ -1412,12 +1412,14 @@ function buildTeamTab(){
   var pctOui=totalVotes>0?Math.round(votesOui/totalVotes*100):0;
   var pctNon=totalVotes>0?Math.round(votesNon/totalVotes*100):0;
   var mvpVotes={},mvpHasVoted=false,mvpClosed=false,mvpEligible=false;
-  if(mvpVoting&&mvpVoting.candidates){mvpVotes=mvpVoting.votes||{};mvpHasVoted=mvpVoting.voters&&mvpVoting.voters.indexOf(me.name)!==-1;mvpClosed=mvpVoting.closed||false;mvpEligible=mvpVoting.candidates.indexOf(me.name)!==-1;}
-  var mvpActive=mvpVoting&&mvpVoting.candidates&&!mvpClosed&&mvpEligible;
+  // Ignorer le vote MVP s'il concerne une autre semaine que les équipes affichées
+  var mvpMatchesTeams=mvpVoting&&mvpVoting.candidates&&(!tv.date||!mvpVoting.date||mvpVoting.date===tv.date);
+  if(mvpMatchesTeams){mvpVotes=mvpVoting.votes||{};mvpHasVoted=mvpVoting.voters&&mvpVoting.voters.indexOf(me.name)!==-1;mvpClosed=mvpVoting.closed||false;mvpEligible=mvpVoting.candidates.indexOf(me.name)!==-1;}
+  var mvpActive=mvpMatchesTeams&&!mvpClosed&&mvpEligible;
   var ponctuelsNomsMVP=ponctuels?ponctuels.map(function(p){return typeof p==='object'?p.nom:p;}):[];
   function makeToken(n,teamClass){
-    var voteCount=mvpVotes[n]||0;var isMyVote=mvpHasVoted&&mvpVoting&&mvpVoting.myVote===n;var canVote=mvpActive&&!mvpHasVoted&&n!==me.name;
-    var showCount=mvpVoting&&mvpVoting.candidates&&(mvpHasVoted||mvpClosed)&&voteCount>0;
+    var voteCount=mvpVotes[n]||0;var isMyVote=mvpHasVoted&&mvpMatchesTeams&&mvpVoting.myVote===n;var canVote=mvpActive&&!mvpHasVoted&&n!==me.name;
+    var showCount=mvpMatchesTeams&&(mvpHasVoted||mvpClosed)&&voteCount>0;
     var circleStyle=isMyVote?'border-color:var(--gold);border-width:3px;':canVote?'cursor:pointer;':'';
     var badgeHtml=showCount?'<div style="position:absolute;top:-6px;right:-6px;background:var(--gold);color:#000;border-radius:50%;width:18px;height:18px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;">'+voteCount+'</div>':(canVote?'<div style="position:absolute;top:-6px;right:-6px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;display:flex;align-items:center;justify-content:center;">🏆</div>':'');
     var clickFn=canVote?'onclick="doVoteMVPToken(\''+n+'\')" title="Voter MVP pour '+n+'"':'';
