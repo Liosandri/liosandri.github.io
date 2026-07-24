@@ -420,7 +420,7 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
         <div id="pin-change-success" style="display:none;font-size:13px;color:#00c853;background:rgba(0,200,83,.12);border-radius:8px;padding:10px 14px;margin-top:8px;">✅ PIN changé !</div>
         <button class="btn-main" onclick="doChangePin()" style="margin-top:4px;">Changer mon PIN</button>
       </div>
-      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-07-24 17:26</div>
+      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-07-24 19:41</div>
     </div>
 
     <div id="tab-admin" style="display:none;">
@@ -1571,12 +1571,21 @@ function doResetEquipes(){
 var precompAssignments={};
 var precompLoaded=false;
 
+function getPrecompRoster(){
+  var ponctuelsNoms=(ponctuels||[]).map(function(p){return typeof p==='object'?p.nom:p;});
+  return inscrits.concat(ponctuelsNoms.filter(function(n){return inscrits.indexOf(n)===-1;})).sort();
+}
+
 function buildPrecompTab(){
   var el=document.getElementById('precomp-content');
   if(!isAdmin){el.innerHTML='';return;}
   var label=getNextThursdayLabel();
   el.innerHTML='<div style="padding:12px 4px;color:var(--text-muted);font-size:12px;">⏳ Chargement...</div>';
-  var roster=DB.map(function(p){return p.name;}).sort();
+  var roster=getPrecompRoster();
+  if(roster.length===0){
+    el.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;">Aucun joueur inscrit pour l\'instant.<br>La précomposition apparaît dès qu\'il y a des inscrits.</div>';
+    return;
+  }
   callSheet('getTeamConstraints',{}).then(function(res){
     precompAssignments=(res&&res.assignments)?res.assignments:{};
     renderPrecompTab(roster,label);
@@ -1609,7 +1618,7 @@ function setPrecomp(name,team){
   if(team===''){delete precompAssignments[name];}
   else{precompAssignments[name]=team;}
   var label=getNextThursdayLabel();
-  renderPrecompTab(DB.map(function(p){return p.name;}).sort(),label);
+  renderPrecompTab(getPrecompRoster(),label);
 }
 
 function savePrecomp(){
