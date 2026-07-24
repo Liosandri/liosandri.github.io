@@ -420,7 +420,7 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
         <div id="pin-change-success" style="display:none;font-size:13px;color:#00c853;background:rgba(0,200,83,.12);border-radius:8px;padding:10px 14px;margin-top:8px;">✅ PIN changé !</div>
         <button class="btn-main" onclick="doChangePin()" style="margin-top:4px;">Changer mon PIN</button>
       </div>
-      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-07-24 17:01</div>
+      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-07-24 17:26</div>
     </div>
 
     <div id="tab-admin" style="display:none;">
@@ -521,15 +521,19 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
     </div>
 
     <div id="tab-team" style="display:none;">
-      <div class="tab-pills" style="display:flex;gap:8px;padding:12px 16px 4px;">
+      <div class="tab-pills" style="display:flex;gap:8px;padding:12px 16px 4px;flex-wrap:wrap;">
         <button class="tab-pill active" id="pillteam-equipes" onclick="switchTeamSubTab('equipes')">⚽ Équipes</button>
         <button class="tab-pill" id="pillteam-mvp" onclick="switchTeamSubTab('mvp')">🏆 MVP</button>
+        <button class="tab-pill" id="pillteam-precomp" style="display:none;" onclick="switchTeamSubTab('precomp')">🧩 Précomposition</button>
       </div>
       <div id="teamsub-equipes">
         <div id="team-content"><div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;">⚡ Équipes disponibles quand le groupe est complet (10 joueurs)</div></div>
       </div>
       <div id="teamsub-mvp" style="display:none;">
         <div id="mvp-content"><div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;">🏆 Vote MVP disponible après le match</div></div>
+      </div>
+      <div id="teamsub-precomp" style="display:none;">
+        <div id="precomp-content"></div>
       </div>
     </div>
   </div>
@@ -604,7 +608,7 @@ function callSheet(action,params){
   var adminActions=['saveResults','cancelMatch','regenerateTeams','closeMVPVoting','resetAll','resetPonctuels',
     'notifyInscriptionsOuvertes','notifyInscriptionsClassiques','initMVPVoting','setPonctuelLock',
     'pauseNotifications','resumeNotifications','sendNotifLionel','sendNotifPlayer',
-    'setPlayerActive','getPlayersAdmin','addPlayer','clearPendingScore','getPendingScore','sendNotifAll','setNotifsCoupees','saveTeams','regenerateTeamsRandom'];
+    'setPlayerActive','getPlayersAdmin','addPlayer','clearPendingScore','getPendingScore','sendNotifAll','setNotifsCoupees','saveTeams','regenerateTeamsRandom','setTeamConstraints','getTeamConstraints'];
   var authActions=['getData','register','voteMVP','changePin','submitScore',
     'addPonctuel','removePonctuel','saveOneSignalId','checkAccountActive'];
   if(adminActions.indexOf(action)!==-1&&_adminToken){
@@ -1153,11 +1157,12 @@ function switchTab(tab){
   if(tab==='team'){buildTeamTab();buildMVPTab();}
 }
 function switchTeamSubTab(s){
-  ['equipes','mvp'].forEach(function(t){
-    document.getElementById('teamsub-'+t).style.display=t===s?'block':'none';
-    document.getElementById('pillteam-'+t).classList.toggle('active',t===s);
+  ['equipes','mvp','precomp'].forEach(function(t){
+    var el=document.getElementById('teamsub-'+t);if(el)el.style.display=t===s?'block':'none';
+    var pill=document.getElementById('pillteam-'+t);if(pill)pill.classList.toggle('active',t===s);
   });
   if(s==='mvp')buildMVPTab();
+  else if(s==='precomp')buildPrecompTab();
   else buildTeamTab();
 }
 function switchStat(s){['perso','classe','rotation'].forEach(function(t){document.getElementById('stat-'+t).style.display=t===s?'block':'none';document.getElementById('pill-'+t).classList.toggle('active',t===s);});}
@@ -1273,7 +1278,7 @@ function cancelMatch(){
   var btn=document.getElementById('cancel-btn');btn.textContent='Annulation...';btn.disabled=true;
   callSheet('cancelMatch',{}).then(function(){matchAnnule=true;alert('Match annulé. Notifications envoyées.');document.getElementById('cancel-match-zone').innerHTML='<div class="banner banner-warn" style="margin-bottom:10px;"><i class="ti ti-x"></i><span>Match annulé — les inscriptions sont bloquées.</span></div>';inscrits=[];updateBannerZone();updateListeZone();updateBoutons();if(btn)btn.disabled=false;}).catch(function(err){alert('Erreur: '+err.message);btn.textContent='❌ Annuler le match';btn.disabled=false;});
 }
-function updateTabVisibility(){var navTea=document.getElementById('nav-tea');if(navTea)navTea.style.display='flex';}
+function updateTabVisibility(){var navTea=document.getElementById('nav-tea');if(navTea)navTea.style.display='flex';var pillP=document.getElementById('pillteam-precomp');if(pillP)pillP.style.display=isAdmin?'inline-block':'none';}
 
 function buildFifaCard(player){
   if(!player)return'';
@@ -1560,6 +1565,61 @@ function doResetEquipes(){
     buildTeamTab();
     var el=document.getElementById('admin-cmd-result');
     if(el){el.textContent='✅ Équipes supprimées';el.style.color='var(--success)';el.style.display='block';setTimeout(function(){el.style.display='none';},3000);}
+  });
+}
+
+var precompAssignments={};
+var precompLoaded=false;
+
+function buildPrecompTab(){
+  var el=document.getElementById('precomp-content');
+  if(!isAdmin){el.innerHTML='';return;}
+  var label=getNextThursdayLabel();
+  el.innerHTML='<div style="padding:12px 4px;color:var(--text-muted);font-size:12px;">⏳ Chargement...</div>';
+  var roster=DB.map(function(p){return p.name;}).sort();
+  callSheet('getTeamConstraints',{}).then(function(res){
+    precompAssignments=(res&&res.assignments)?res.assignments:{};
+    renderPrecompTab(roster,label);
+  }).catch(function(){
+    precompAssignments={};
+    renderPrecompTab(roster,label);
+  });
+}
+
+function renderPrecompTab(roster,label){
+  var el=document.getElementById('precomp-content');
+  var rowsHtml=roster.map(function(name){
+    var val=precompAssignments[name]||'';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--border);">'+
+      '<div class="player-avatar" style="width:34px;height:34px;font-size:12px;">'+name.substring(0,2).toUpperCase()+'</div>'+
+      '<div style="flex:1;font-size:14px;font-weight:600;">'+name+'</div>'+
+      '<div style="display:flex;gap:4px;">'+
+        '<button class="precomp-btn'+(val==='team1'?' active-bleu':'')+'" onclick="setPrecomp(\''+name+'\',\'team1\')" style="padding:6px 10px;border-radius:8px;font-size:11px;font-weight:700;border:1px solid var(--border);background:'+(val==='team1'?'#3d6db5':'var(--bg-card2)')+';color:'+(val==='team1'?'#fff':'var(--text-muted)')+';">🔵 Bleu</button>'+
+        '<button class="precomp-btn'+(val===''?' active-libre':'')+'" onclick="setPrecomp(\''+name+'\',\'\')" style="padding:6px 10px;border-radius:8px;font-size:11px;font-weight:700;border:1px solid var(--border);background:'+(val===''?'var(--border)':'var(--bg-card2)')+';color:'+(val===''?'#fff':'var(--text-muted)')+';">⬜ Libre</button>'+
+        '<button class="precomp-btn'+(val==='team2'?' active-rouge':'')+'" onclick="setPrecomp(\''+name+'\',\'team2\')" style="padding:6px 10px;border-radius:8px;font-size:11px;font-weight:700;border:1px solid var(--border);background:'+(val==='team2'?'#b53d3d':'var(--bg-card2)')+';color:'+(val==='team2'?'#fff':'var(--text-muted)')+';">🔴 Rouge</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  el.innerHTML='<div class="banner banner-info" style="margin-bottom:12px;"><i class="ti ti-info-circle"></i><span>Pré-assigne des joueurs à une équipe pour '+label+'. Ces choix servent de base à la génération des équipes jeudi 12h. Actif jusqu\'à jeudi 12h uniquement.</span></div>'+
+    '<div class="card">'+rowsHtml+'</div>'+
+    '<button id="btn-save-precomp" class="btn-main" style="margin-top:14px;" onclick="savePrecomp()">💾 Enregistrer pour '+label+'</button>';
+}
+
+function setPrecomp(name,team){
+  if(team===''){delete precompAssignments[name];}
+  else{precompAssignments[name]=team;}
+  var label=getNextThursdayLabel();
+  renderPrecompTab(DB.map(function(p){return p.name;}).sort(),label);
+}
+
+function savePrecomp(){
+  var btn=document.getElementById('btn-save-precomp');if(btn){btn.disabled=true;btn.textContent='⏳ Enregistrement...';}
+  callSheet('setTeamConstraints',{assignments:JSON.stringify(precompAssignments)}).then(function(res){
+    if(res&&res.error){alert('Erreur: '+res.error);}
+    if(btn){btn.disabled=false;btn.textContent='✅ Enregistré !';setTimeout(function(){btn.textContent='💾 Enregistrer pour '+getNextThursdayLabel();},2000);}
+  }).catch(function(){
+    alert('Erreur réseau');
+    if(btn){btn.disabled=false;btn.textContent='💾 Enregistrer pour '+getNextThursdayLabel();}
   });
 }
 
