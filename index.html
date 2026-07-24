@@ -420,6 +420,7 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
         <div id="pin-change-success" style="display:none;font-size:13px;color:#00c853;background:rgba(0,200,83,.12);border-radius:8px;padding:10px 14px;margin-top:8px;">✅ PIN changé !</div>
         <button class="btn-main" onclick="doChangePin()" style="margin-top:4px;">Changer mon PIN</button>
       </div>
+      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-07-24 08:34</div>
     </div>
 
     <div id="tab-admin" style="display:none;">
@@ -520,7 +521,16 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
     </div>
 
     <div id="tab-team" style="display:none;">
-      <div id="team-content"><div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;">⚡ Équipes disponibles quand le groupe est complet (10 joueurs)</div></div>
+      <div class="tab-pills" style="display:flex;gap:8px;padding:12px 16px 4px;">
+        <button class="tab-pill active" id="pillteam-equipes" onclick="switchTeamSubTab('equipes')">⚽ Équipes</button>
+        <button class="tab-pill" id="pillteam-mvp" onclick="switchTeamSubTab('mvp')">🏆 MVP</button>
+      </div>
+      <div id="teamsub-equipes">
+        <div id="team-content"><div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;">⚡ Équipes disponibles quand le groupe est complet (10 joueurs)</div></div>
+      </div>
+      <div id="teamsub-mvp" style="display:none;">
+        <div id="mvp-content"><div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;">🏆 Vote MVP disponible après le match</div></div>
+      </div>
     </div>
   </div>
 
@@ -551,6 +561,7 @@ var absentsConnus=[];
 var _presenceManuallySet=false;
 var presence='pending';
 var palmaresMVP=[];
+var registrationTimes={};
 var _playerToken='',_adminToken='';
 
 function saveDataCache(d){try{localStorage.setItem(CACHE_KEY,JSON.stringify({data:d,ts:Date.now()}));}catch(e){}}
@@ -593,7 +604,7 @@ function callSheet(action,params){
   var adminActions=['saveResults','cancelMatch','regenerateTeams','closeMVPVoting','resetAll','resetPonctuels',
     'notifyInscriptionsOuvertes','notifyInscriptionsClassiques','initMVPVoting','setPonctuelLock',
     'pauseNotifications','resumeNotifications','sendNotifLionel','sendNotifPlayer',
-    'setPlayerActive','getPlayersAdmin','addPlayer','clearPendingScore','getPendingScore','sendNotifAll','setNotifsCoupees','saveTeams'];
+    'setPlayerActive','getPlayersAdmin','addPlayer','clearPendingScore','getPendingScore','sendNotifAll','setNotifsCoupees','saveTeams','regenerateTeamsRandom'];
   var authActions=['getData','register','voteMVP','changePin','submitScore',
     'addPonctuel','removePonctuel','saveOneSignalId','checkAccountActive'];
   if(adminActions.indexOf(action)!==-1&&_adminToken){
@@ -661,6 +672,7 @@ function refreshData(){
     ponctuelLocked=d.ponctuelLocked||false;
         if(d.rotationPts&&DB&&DB.length>0){DB.forEach(function(p2){if(d.rotationPts[p2.name]!==undefined)p2.pts=d.rotationPts[p2.name];});}
         if(d.palmaresMVP){palmaresMVP=d.palmaresMVP;}
+        if(d.registrationTimes){registrationTimes=d.registrationTimes;}
 
     var wasInscrit=inscrits.indexOf(me.name)!==-1;
     var p;
@@ -706,6 +718,7 @@ window.addEventListener('load',function(){
         ponctuelLocked=d.ponctuelLocked||false;
         if(d.rotationPts&&DB&&DB.length>0){DB.forEach(function(p2){if(d.rotationPts[p2.name]!==undefined)p2.pts=d.rotationPts[p2.name];});if(me&&d.rotationPts[me.name]!==undefined){me.pts=d.rotationPts[me.name];var tp=document.getElementById('top-pts');if(tp)tp.textContent=(me.pts||0)+' pt'+((me.pts||0)>1?'s':'')+' de rotation';}}
         if(d.palmaresMVP){palmaresMVP=d.palmaresMVP;}
+        if(d.registrationTimes){registrationTimes=d.registrationTimes;}
 
         if(d.notifsCoupees!==undefined){notifsCoupees=d.notifsCoupees;updateNotifToggle();}
         var wasInscrit=inscrits.indexOf(me.name)!==-1;
@@ -1047,7 +1060,8 @@ function updateListeZone(){
         (exclu?'<span class="pill pill-red">Exclu</span>':'<span class="pill pill-green">OK</span>')+
       '</div>';
     } else {
-      html+='<div class="player-row"><div class="player-avatar" style="'+(isMe?'border:2px solid var(--blue);':'')+'">'+name.substring(0,2).toUpperCase()+'</div><span class="player-name">'+name+(isMe?' <span style="font-size:11px;color:var(--text-muted);">(moi)</span>':'')+'</span><span style="font-size:12px;color:var(--text-muted);margin-right:6px;">'+pts+' pts</span>'+(exclu?'<span class="pill pill-red">Exclu</span>':'<span class="pill pill-green">OK</span>')+'</div>';
+      var regTime=registrationTimes[name]?' · '+registrationTimes[name]:'';
+      html+='<div class="player-row"><div class="player-avatar" style="'+(isMe?'border:2px solid var(--blue);':'')+'">'+name.substring(0,2).toUpperCase()+'</div><span class="player-name">'+name+(isMe?' <span style="font-size:11px;color:var(--text-muted);">(moi)</span>':'')+'</span><span style="font-size:12px;color:var(--text-muted);margin-right:6px;">'+pts+' pts'+regTime+'</span>'+(exclu?'<span class="pill pill-red">Exclu</span>':'<span class="pill pill-green">OK</span>')+'</div>';
     }
   });
   el.innerHTML=html+'</div>';
@@ -1135,7 +1149,15 @@ function switchTab(tab){
     var n=document.getElementById('nav-'+shortMap[t]);if(n)n.classList.toggle('active',t===tab);
   });
   if(tab==='stats'){buildStatPerso(currentPeriod);buildStatClasse(currentPeriodClasse);buildStatRotation();}
-  if(tab==='team'){buildTeamTab();}
+  if(tab==='team'){buildTeamTab();buildMVPTab();}
+}
+function switchTeamSubTab(s){
+  ['equipes','mvp'].forEach(function(t){
+    document.getElementById('teamsub-'+t).style.display=t===s?'block':'none';
+    document.getElementById('pillteam-'+t).classList.toggle('active',t===s);
+  });
+  if(s==='mvp')buildMVPTab();
+  else buildTeamTab();
 }
 function switchStat(s){['perso','classe','rotation'].forEach(function(t){document.getElementById('stat-'+t).style.display=t===s?'block':'none';document.getElementById('pill-'+t).classList.toggle('active',t===s);});}
 
@@ -1377,6 +1399,22 @@ function enableDragDrop(){
     tok.addEventListener('touchcancel',function(){cleanupDrag();_dragPlayer=null;_dragTeam=null;});
   });
 }
+function doRegenerateRandom(){
+  var tv=teamVoting;var currentPlayers=(tv.eligible||[]).slice();
+  var btn=document.getElementById('btn-regen-random');if(btn){btn.disabled=true;btn.textContent='⏳ Génération...';}
+  callSheet('regenerateTeamsRandom',{inscrits:JSON.stringify(currentPlayers)}).then(function(res){
+    if(res&&res.team1){
+      teamVoting=res;teamsPendingValidation=true;
+      buildTeamTab();
+    } else if(res&&res.error){
+      alert('Erreur: '+res.error);
+    }
+    if(btn){btn.disabled=false;btn.textContent='🎲 Autre répartition';}
+  }).catch(function(){
+    alert('Erreur réseau');
+    if(btn){btn.disabled=false;btn.textContent='🎲 Autre répartition';}
+  });
+}
 function doValidateTeams(){
   if(!confirm('Valider et sauvegarder ces équipes ?'))return;
   var btn=document.getElementById('btn-validate-teams');if(btn){btn.disabled=true;btn.textContent='⏳ Sauvegarde...';}
@@ -1411,20 +1449,9 @@ function buildTeamTab(){
   var votesOui=tv.votesOui||0,votesNon=tv.votesNon||0,totalVotes=votesOui+votesNon;
   var pctOui=totalVotes>0?Math.round(votesOui/totalVotes*100):0;
   var pctNon=totalVotes>0?Math.round(votesNon/totalVotes*100):0;
-  var mvpVotes={},mvpHasVoted=false,mvpClosed=false,mvpEligible=false;
-  // Ignorer le vote MVP s'il concerne une autre semaine que les équipes affichées
-  var mvpMatchesTeams=mvpVoting&&mvpVoting.candidates&&(!tv.date||!mvpVoting.date||mvpVoting.date===tv.date);
-  if(mvpMatchesTeams){mvpVotes=mvpVoting.votes||{};mvpHasVoted=mvpVoting.voters&&mvpVoting.voters.indexOf(me.name)!==-1;mvpClosed=mvpVoting.closed||false;mvpEligible=mvpVoting.candidates.indexOf(me.name)!==-1;}
-  var mvpActive=mvpMatchesTeams&&!mvpClosed&&mvpEligible;
-  var ponctuelsNomsMVP=ponctuels?ponctuels.map(function(p){return typeof p==='object'?p.nom:p;}):[];
   function makeToken(n,teamClass){
-    var voteCount=mvpVotes[n]||0;var isMyVote=mvpHasVoted&&mvpMatchesTeams&&mvpVoting.myVote===n;var canVote=mvpActive&&!mvpHasVoted&&n!==me.name;
-    var showCount=mvpMatchesTeams&&(mvpHasVoted||mvpClosed)&&voteCount>0;
-    var circleStyle=isMyVote?'border-color:var(--gold);border-width:3px;':canVote?'cursor:pointer;':'';
-    var badgeHtml=showCount?'<div style="position:absolute;top:-6px;right:-6px;background:var(--gold);color:#000;border-radius:50%;width:18px;height:18px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;">'+voteCount+'</div>':(canVote?'<div style="position:absolute;top:-6px;right:-6px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;display:flex;align-items:center;justify-content:center;">🏆</div>':'');
-    var clickFn=canVote?'onclick="doVoteMVPToken(\''+n+'\')" title="Voter MVP pour '+n+'"':'';
     var draggable=isAdmin?'draggable="true"':'';
-    return'<div class="pitch-token '+teamClass+'" '+draggable+' data-player="'+n+'" data-team="'+teamClass+'" style="position:relative;"><div class="pitch-token-circle" style="'+circleStyle+'" '+clickFn+'>'+n.substring(0,2).toUpperCase()+'</div>'+badgeHtml+'<div class="pitch-token-name">'+n.split(' ')[0]+'</div></div>';
+    return'<div class="pitch-token '+teamClass+'" '+draggable+' data-player="'+n+'" data-team="'+teamClass+'" style="position:relative;"><div class="pitch-token-circle">'+n.substring(0,2).toUpperCase()+'</div><div class="pitch-token-name">'+n.split(' ')[0]+'</div></div>';
   }
   var t2tokens=tv.team2.map(function(n){return makeToken(n,'t2');}).join('');
   var t1tokens=tv.team1.map(function(n){return makeToken(n,'t1');}).join('');
@@ -1488,10 +1515,9 @@ function buildTeamTab(){
     '<div class="vote-bar-row"><div class="vote-bar-meta"><span>✅ OUI</span><span>'+votesOui+' ('+pctOui+'%)</span></div><div class="vote-bar-bg"><div class="vote-bar-fill vbar-t1" style="width:'+pctOui+'%"></div></div></div>'+
     '<div class="vote-bar-row"><div class="vote-bar-meta"><span>❌ NON</span><span>'+votesNon+' ('+pctNon+'%)</span></div><div class="vote-bar-bg"><div class="vote-bar-fill vbar-t2" style="width:'+pctNon+'%"></div></div></div>'+
     '<div style="font-size:11px;color:var(--text-muted);margin-top:6px;">'+totalVotes+' vote'+(totalVotes>1?'s':'')+' · Anonyme</div>'+
-    // Bouton régénérer supprimé - utiliser Admin > Reset équipes+
+    (isAdmin?'<button id="btn-regen-random" class="btn-main" style="margin-top:8px;background:var(--bg-card2);border:1px solid var(--border);" onclick="doRegenerateRandom()">🎲 Autre répartition</button>':'')+
     (isAdmin&&teamsPendingValidation?'<button id="btn-validate-teams" class="btn-main" style="margin-top:8px;background:#00c853;border:none;" onclick="doValidateTeams()">✅ Valider ces équipes</button>':'')+
     '</div>'+
-    buildMVPBandeauTeamTab()+
     buildScoreZone();
 }
 
@@ -1520,19 +1546,6 @@ function submitScore(){
   callSheet('submitScore',{player:me.name,result:selectedScore}).then(function(res){if(res&&res.error){alert('Erreur: '+res.error);if(btn){btn.disabled=false;btn.textContent="📤 Soumettre à l'admin";}return;}var data={result:selectedScore,by:me.name,date:new Date().toISOString()};setPendingScore(data);buildTeamTab();}).catch(function(){alert('Erreur réseau');if(btn){btn.disabled=false;btn.textContent="📤 Soumettre à l'admin";}});
 }
 
-function buildMVPBandeauTeamTab(){
-  if(!mvpVoting||!mvpVoting.candidates)return'';
-  var mv=mvpVoting;var hasVoted=mv.voters&&mv.voters.indexOf(me.name)!==-1;var isClosed=mv.closed||false;var isElig=mv.candidates.indexOf(me.name)!==-1;
-  var ponctuelsNoms=ponctuels?ponctuels.map(function(p){return typeof p==='object'?p.nom:p;}):[];
-  if(isClosed){var maxV=0,winner='';Object.keys(mv.votes||{}).forEach(function(n){if((mv.votes[n]||0)>maxV){maxV=mv.votes[n];winner=n;}});return'<div class="mvp-winner-card" style="margin-top:12px;"><div style="font-size:28px;">🏆</div><div class="mvp-winner-name">'+winner+'</div><div style="font-size:12px;color:var(--text-muted);">MVP · '+maxV+' vote'+(maxV>1?'s':'')+'</div></div>';}
-  if(!isElig){return'<div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;padding:10px;">👀 Vote MVP réservé aux joueurs du match</div>';}
-  if(hasVoted){var totalV=0;Object.values(mv.votes||{}).forEach(function(v){totalV+=v;});return'<div style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:10px;padding:10px;"><span style="color:var(--gold);">✔</span> Vote MVP enregistré · '+(isAdmin?totalV+'/'+(mv.candidates.length)+' ont voté':'Vote enregistré')+'</div>';}
-  return'<div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;padding:8px;">🏆 Clique sur un joueur pour voter MVP · Interdit de voter pour toi-même</div>';
-}
-
-function doVoteMVPToken(candidate){
-  callSheet('voteMVP',{player:me.name,candidate:candidate}).then(function(res){if(res.error){alert(res.error);return;}if(!mvpVoting.voters)mvpVoting.voters=[];mvpVoting.voters.push(me.name);mvpVoting.myVote=candidate;mvpVoting.votes=res.votes;if(res.closed)mvpVoting.closed=true;buildTeamTab();});
-}
 function doVoteTeam(vote){
   callSheet('voteTeam',{player:me.name,team:vote}).then(function(res){if(res.error){alert(res.error);return;}if(!teamVoting.voters)teamVoting.voters=[];teamVoting.voters.push(me.name);teamVoting.votesOui=res.votesOui;teamVoting.votesNon=res.votesNon;buildTeamTab();});
 }
@@ -1549,20 +1562,121 @@ function doResetEquipes(){
   });
 }
 
+var selectedMVPCandidate=null;
+
 function buildMVPTab(){
   var el=document.getElementById('mvp-content');
-  if(!mvpVoting||!mvpVoting.candidates){var label=getNextThursdayLabel();el.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;gap:12px;"><div style="font-size:36px;">🏆</div><div style="font-size:16px;font-weight:600;color:var(--silver-light);">Vote MVP</div><div style="font-size:13px;color:var(--text-muted);text-align:center;max-width:280px;line-height:1.5;">Le vote MVP s\'ouvre '+label+' soir à 20h, après le match.</div></div>';return;}
-  var mv=mvpVoting;var isClosed=mv.closed||false;var totalVotes=0;Object.values(mv.votes||{}).forEach(function(v){totalVotes+=v;});
-  var maxV=0,winner='';Object.keys(mv.votes||{}).forEach(function(n){if((mv.votes[n]||0)>maxV){maxV=mv.votes[n];winner=n;}});
-  var isElig=mv.candidates.indexOf(me.name)!==-1;var hasVoted=mv.voters&&mv.voters.indexOf(me.name)!==-1;
-  if(isClosed){el.innerHTML='<div class="mvp-winner-card"><div style="font-size:48px;">🏆</div><div class="mvp-winner-name">'+winner+'</div><div style="font-size:13px;color:var(--text-muted);margin-top:4px;">MVP du '+mv.date+'</div><div style="font-size:13px;color:var(--gold);margin-top:6px;">'+maxV+' vote'+(maxV>1?'s':'')+' sur '+totalVotes+'</div></div><div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;">Vote clôturé</div>';return;}
-  if(!isElig){el.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;">👀 Vote MVP réservé aux joueurs du match</div>';return;}
-  el.innerHTML='<div class="banner banner-info" style="margin-bottom:12px;"><i class="ti ti-trophy"></i><span>Vote sur le terrain (onglet Équipes) ou ici — tu ne peux pas voter pour toi-même</span></div><div class="mvp-grid">'+
-    mv.candidates.map(function(name){if(name===me.name)return'';var votes=mv.votes[name]||0;var isWin=name===winner&&maxV>0&&hasVoted;var isPonctuel=ponctuels&&ponctuels.some(function(p){return(typeof p==='object'?p.nom:p)===name;});var canVote=!hasVoted&&!isPonctuel;return'<div class="mvp-cand'+(hasVoted?' voted':'')+(isPonctuel?' ponctuel':'')+'" onclick="'+(canVote?'doVoteMVP("'+name+'")':'')+'"><div class="cav" style="'+(isWin?'background:rgba(212,175,55,0.2);border-color:var(--gold);':'')+(isPonctuel?'opacity:0.6;':'')+'">'+name.substring(0,2).toUpperCase()+'</div><div class="cname">'+name+(isPonctuel?' <span style="font-size:10px;color:var(--text-muted);">(ext.)</span>':'')+'</div>'+(hasVoted?'<div class="cvotes">'+(isAdmin||isClosed?votes:'?')+'</div><div class="cvlbl">vote'+(votes>1?'s':'')+'</div>':isPonctuel?'<div style="font-size:11px;color:var(--text-muted);">Spectateur</div>':'<div style="font-size:11px;color:var(--text-muted);">Voter</div>')+'</div>';}).join('')+
-    '</div>'+(!hasVoted?'<div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:10px;">'+totalVotes+' vote'+(totalVotes>1?'s':'')+' · '+mv.candidates.length+' joueurs</div>':'<div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;">✔ Vote enregistré · '+totalVotes+'/'+mv.candidates.length+' ont voté</div>');
+  selectedMVPCandidate=null;
+
+  if(!mvpVoting||!mvpVoting.candidates){
+    var label=getNextThursdayLabel();
+    el.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;gap:12px;"><div style="font-size:36px;">🏆</div><div style="font-size:16px;font-weight:600;color:var(--silver-light);">Vote MVP</div><div style="font-size:13px;color:var(--text-muted);text-align:center;max-width:280px;line-height:1.5;">Le vote MVP s\'ouvre '+label+' soir à 19h, après le match.</div></div>';
+    return;
+  }
+
+  var mv=mvpVoting;
+  var isClosed=mv.closed||false;
+  var totalVoters=mv.voters?mv.voters.length:0;
+  var isElig=mv.candidates.indexOf(me.name)!==-1;
+  var hasVoted=mv.voters&&mv.voters.indexOf(me.name)!==-1;
+  var myVote=mv.myVote||null;
+
+  // ── Vote clôturé : résultats visibles pour tous ──
+  if(isClosed){
+    var maxV=0;Object.keys(mv.votes||{}).forEach(function(n){if((mv.votes[n]||0)>maxV)maxV=mv.votes[n];});
+    var winners=Object.keys(mv.votes||{}).filter(function(n){return(mv.votes[n]||0)===maxV&&maxV>0;});
+    var sorted=Object.keys(mv.votes||{}).sort(function(a,b){return(mv.votes[b]||0)-(mv.votes[a]||0);});
+    el.innerHTML=
+      '<div class="mvp-winner-card"><div style="font-size:44px;">🏆</div><div class="mvp-winner-name">'+winners.join(' & ')+'</div><div style="font-size:13px;color:var(--text-muted);margin-top:4px;">MVP du '+mv.date+'</div><div style="font-size:13px;color:var(--gold);margin-top:6px;">'+maxV+' vote'+(maxV>1?'s':'')+'</div></div>'+
+      '<div class="card" style="margin-top:16px;">'+
+      '<div class="card-title" style="font-size:11px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;font-weight:700;">Résultats du vote</div>'+
+      sorted.map(function(name){
+        var v=mv.votes[name]||0;var pct=maxV>0?Math.round(v/maxV*100):0;var isW=v===maxV&&maxV>0;
+        return '<div style="display:flex;align-items:center;gap:12px;padding:10px 2px;">'+
+          '<div class="player-avatar" style="width:36px;height:36px;font-size:13px;'+(isW?'border:2px solid var(--gold);':'')+'">'+name.substring(0,2).toUpperCase()+'</div>'+
+          '<div style="flex:1;font-size:14px;font-weight:600;">'+name+'</div>'+
+          '<div style="width:70px;height:6px;background:var(--bg-card2);border-radius:99px;overflow:hidden;margin-right:8px;"><div style="height:100%;width:'+pct+'%;background:'+(isW?'var(--gold)':'#3d6db5')+';border-radius:99px;"></div></div>'+
+          '<div style="font-size:13px;font-weight:700;width:18px;text-align:right;">'+v+'</div>'+
+        '</div>';
+      }).join('')+
+      '</div>';
+    return;
+  }
+
+  // ── Pas éligible ──
+  if(!isElig){
+    el.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;">👀 Vote MVP réservé aux joueurs du match</div>';
+    return;
+  }
+
+  var candidatesHtml=mv.candidates.filter(function(n){return n!==me.name;}).map(function(name){
+    var isSelected=hasVoted?(myVote===name):(selectedMVPCandidate===name);
+    var isPonctuel=ponctuels&&ponctuels.some(function(p){return(typeof p==='object'?p.nom:p)===name;});
+    var rowClass='player-row'+(isSelected?' selected':'')+(isPonctuel||hasVoted?' disabled':'');
+    var clickFn=(!hasVoted&&!isPonctuel)?'onclick="selectMVPCandidate(\''+name+'\')"':'';
+    return '<div class="'+rowClass+'" '+clickFn+' style="display:flex;align-items:center;gap:14px;padding:12px 4px;border-bottom:1px solid var(--border);'+(isSelected?'':'')+'">'+
+      '<div class="player-avatar" style="width:38px;height:38px;font-size:14px;">'+name.substring(0,2).toUpperCase()+'</div>'+
+      '<div style="flex:1;font-size:15px;font-weight:600;'+(isSelected?'color:var(--gold);':'')+'">'+name+(isPonctuel?' <span style="font-size:10px;color:var(--text-muted);">(ext.)</span>':'')+'</div>'+
+      '<div style="width:24px;height:24px;border-radius:50%;border:2px solid '+(isSelected?'var(--gold)':'var(--border)')+';'+(isSelected?'background:var(--gold);':'')+'display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+(isSelected?'<span style="color:#000;font-size:12px;font-weight:900;">✓</span>':'')+'</div>'+
+    '</div>';
+  }).join('');
+
+  var progressHtml='<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);text-align:center;">'+
+    '<div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;">'+totalVoters+' / '+mv.candidates.length+' joueurs ont voté</div>'+
+    '<div style="height:8px;background:var(--bg-card2);border-radius:99px;overflow:hidden;"><div style="height:100%;width:'+Math.round(totalVoters/mv.candidates.length*100)+'%;background:linear-gradient(90deg,var(--gold),#f4d03f);border-radius:99px;"></div></div>'+
+    '</div>';
+
+  // ── Vue admin : décompte en direct visible en plus ──
+  var adminLiveHtml='';
+  if(isAdmin){
+    var sortedAdmin=Object.keys(mv.votes||{}).sort(function(a,b){return(mv.votes[b]||0)-(mv.votes[a]||0);});
+    var maxVA=0;sortedAdmin.forEach(function(n){if((mv.votes[n]||0)>maxVA)maxVA=mv.votes[n];});
+    adminLiveHtml='<div class="banner banner-info" style="margin-bottom:12px;"><i class="ti ti-eye"></i><span>Vue admin — décompte en temps réel (invisible pour les autres)</span></div>'+
+      '<div class="card" style="margin-bottom:16px;">'+
+      sortedAdmin.map(function(name){
+        var v=mv.votes[name]||0;var pct=maxVA>0?Math.round(v/maxVA*100):0;
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 2px;">'+
+          '<div style="flex:1;font-size:13px;">'+name+'</div>'+
+          '<div style="width:60px;height:5px;background:var(--bg-card2);border-radius:99px;overflow:hidden;margin-right:6px;"><div style="height:100%;width:'+pct+'%;background:#3d6db5;border-radius:99px;"></div></div>'+
+          '<div style="font-size:12px;font-weight:700;width:16px;text-align:right;">'+v+'</div>'+
+        '</div>';
+      }).join('')+
+      '</div>';
+  }
+
+  if(hasVoted){
+    el.innerHTML=adminLiveHtml+
+      '<div class="confirmed-box" style="background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.3);border-radius:12px;padding:16px;text-align:center;margin-bottom:16px;">'+
+      '<div style="color:var(--green);font-size:14px;font-weight:600;">✔ Ton vote pour '+myVote+' est enregistré</div>'+
+      '</div>'+
+      '<div class="card">'+candidatesHtml+progressHtml+'</div>';
+  } else {
+    el.innerHTML=adminLiveHtml+
+      '<div class="card"><div class="card-title" style="font-size:11px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;font-weight:700;">Choisis ton MVP</div>'+
+      candidatesHtml+progressHtml+'</div>'+
+      '<button id="btn-submit-mvp" class="btn-main" style="margin-top:14px;" disabled onclick="submitMVPVote()">Valider mon vote</button>';
+  }
 }
-function doVoteMVP(candidate){
-  callSheet('voteMVP',{player:me.name,candidate:candidate}).then(function(res){if(res.error){alert(res.error);return;}mvpVoting.votes=res.votes;mvpVoting.myVote=candidate;if(!mvpVoting.voters)mvpVoting.voters=[];mvpVoting.voters.push(me.name);if(res.closed)mvpVoting.closed=true;buildMVPTab();if(teamVoting)buildTeamTab();});
+
+function selectMVPCandidate(name){
+  selectedMVPCandidate=name;
+  buildMVPTab();
+  var btn=document.getElementById('btn-submit-mvp');
+  if(btn){btn.disabled=false;btn.textContent='Valider mon vote pour '+name;}
+}
+
+function submitMVPVote(){
+  if(!selectedMVPCandidate)return;
+  var candidate=selectedMVPCandidate;
+  var btn=document.getElementById('btn-submit-mvp');if(btn){btn.disabled=true;btn.textContent='⏳ Envoi...';}
+  callSheet('voteMVP',{player:me.name,candidate:candidate,osId:window._currentOsId||''}).then(function(res){
+    if(res.error){alert(res.error);if(btn){btn.disabled=false;btn.textContent='Valider mon vote pour '+candidate;}return;}
+    mvpVoting.votes=res.votes;mvpVoting.myVote=candidate;
+    if(!mvpVoting.voters)mvpVoting.voters=[];
+    mvpVoting.voters.push(me.name);
+    if(res.closed)mvpVoting.closed=true;
+    buildMVPTab();
+  }).catch(function(){alert('Erreur réseau');if(btn){btn.disabled=false;btn.textContent='Valider mon vote pour '+candidate;}});
 }
 </script>
 <div class="absents-popup-overlay" id="absents-overlay" onclick="if(event.target===this)closeAbsentsPopup()">
