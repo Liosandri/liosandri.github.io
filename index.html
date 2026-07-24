@@ -420,7 +420,7 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
         <div id="pin-change-success" style="display:none;font-size:13px;color:#00c853;background:rgba(0,200,83,.12);border-radius:8px;padding:10px 14px;margin-top:8px;">✅ PIN changé !</div>
         <button class="btn-main" onclick="doChangePin()" style="margin-top:4px;">Changer mon PIN</button>
       </div>
-      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-07-24 19:41</div>
+      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-07-24 20:00</div>
     </div>
 
     <div id="tab-admin" style="display:none;">
@@ -1053,20 +1053,21 @@ function updateListeZone(){
       var ponctOvr='';
       if(fifaStatsAll&&fifaStatsAll[name]){var s=fifaStatsAll[name];ponctOvr=Math.round((s.atk+s.def+s.pss+s.sta+s.kep)/5);}
       var ponctBy=ponctData.ajoutePar?ponctData.ajoutePar.substring(0,2).toUpperCase():'';
+      var regTimeP=registrationTimes[name]?'<span style="font-size:10px;color:var(--text-muted);">· '+registrationTimes[name]+'</span>':'';
       html+='<div class="player-row"><div class="player-avatar" style="background:rgba(30,144,255,.15);border:1px solid rgba(30,144,255,.3);">'+name.substring(0,2).toUpperCase()+'</div>'+
         '<div style="flex:1;min-width:0;">'+
           '<div style="font-size:14px;color:var(--silver-light);">'+name+'</div>'+
-          '<div style="display:flex;align-items:center;gap:5px;margin-top:2px;">'+
+          '<div style="display:flex;align-items:center;gap:5px;margin-top:2px;flex-wrap:wrap;">'+
             '<span style="font-size:10px;font-weight:700;color:var(--blue);background:rgba(30,144,255,.12);border:1px solid rgba(30,144,255,.2);border-radius:99px;padding:1px 6px;">PONCTUEL</span>'+
             (ponctOvr?'<span style="font-size:10px;color:var(--text-muted);">OVR '+ponctOvr+'</span>':'')+
             (ponctBy?'<span style="font-size:10px;color:var(--text-muted);">· par '+ponctBy+'</span>':'')+
+            regTimeP+
           '</div>'+
         '</div>'+
-        (exclu?'<span class="pill pill-red">Exclu</span>':'<span class="pill pill-green">OK</span>')+
       '</div>';
     } else {
-      var regTime=registrationTimes[name]?' · '+registrationTimes[name]:'';
-      html+='<div class="player-row"><div class="player-avatar" style="'+(isMe?'border:2px solid var(--blue);':'')+'">'+name.substring(0,2).toUpperCase()+'</div><span class="player-name">'+name+(isMe?' <span style="font-size:11px;color:var(--text-muted);">(moi)</span>':'')+'</span><span style="font-size:12px;color:var(--text-muted);margin-right:6px;">'+pts+' pts'+regTime+'</span>'+(exclu?'<span class="pill pill-red">Exclu</span>':'<span class="pill pill-green">OK</span>')+'</div>';
+      var regTime=registrationTimes[name]?'<div style="font-size:10px;color:var(--text-muted);margin-top:2px;">'+registrationTimes[name]+'</div>':'';
+      html+='<div class="player-row"><div class="player-avatar" style="'+(isMe?'border:2px solid var(--blue);':'')+'">'+name.substring(0,2).toUpperCase()+'</div><div style="flex:1;min-width:0;"><span class="player-name">'+name+(isMe?' <span style="font-size:11px;color:var(--text-muted);">(moi)</span>':'')+'</span>'+regTime+'</div><span class="pill pill-green">'+pts+' pts</span></div>';
     }
   });
   el.innerHTML=html+'</div>';
