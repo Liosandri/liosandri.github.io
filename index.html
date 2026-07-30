@@ -1637,7 +1637,6 @@ var selectedMVPCandidate=null;
 
 function buildMVPTab(){
   var el=document.getElementById('mvp-content');
-  selectedMVPCandidate=null;
 
   if(!mvpVoting||!mvpVoting.candidates){
     var label=getNextThursdayLabel();
@@ -1746,6 +1745,7 @@ function submitMVPVote(){
     if(!mvpVoting.voters)mvpVoting.voters=[];
     mvpVoting.voters.push(me.name);
     if(res.closed)mvpVoting.closed=true;
+    selectedMVPCandidate=null;
     buildMVPTab();
   }).catch(function(){alert('Erreur réseau');if(btn){btn.disabled=false;btn.textContent='Valider mon vote pour '+candidate;}});
 }
