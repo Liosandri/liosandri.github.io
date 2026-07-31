@@ -968,8 +968,11 @@ function setPresence(val,silent){
     var phase=getCurrentPhase();
     if(phase==='closed'){alert("Les inscriptions sont fermées jusqu'à vendredi 8h00.");return;}
     if(phase==='open_classic'&&val==='present'&&inscrits.length>=10&&inscrits.indexOf(me.name)===-1){alert("Le groupe est complet (10/10). Tu ne peux plus t'inscrire.");return;}
-    if(val==='absent'&&presence==='present'&&inscrits.indexOf(me.name)!==-1){
-      if(!confirm("Es-tu sûr de vouloir te désinscrire ?"))return;
+    if(val==='absent'){
+      var btnP=document.getElementById('btn-present');
+      if(btnP&&btnP.classList.contains('selected-present')){
+        if(!confirm("Es-tu sûr de vouloir te désinscrire ?"))return;
+      }
     }
   }
   // Optimistic UI : appliquer immédiatement sans attendre GAS
