@@ -420,7 +420,7 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
         <div id="pin-change-success" style="display:none;font-size:13px;color:#00c853;background:rgba(0,200,83,.12);border-radius:8px;padding:10px 14px;margin-top:8px;">✅ PIN changé !</div>
         <button class="btn-main" onclick="doChangePin()" style="margin-top:4px;">Changer mon PIN</button>
       </div>
-      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-07-24 20:00</div>
+      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-07-31 14:00</div>
     </div>
 
     <div id="tab-admin" style="display:none;">
@@ -968,6 +968,9 @@ function setPresence(val,silent){
     var phase=getCurrentPhase();
     if(phase==='closed'){alert("Les inscriptions sont fermées jusqu'à vendredi 8h00.");return;}
     if(phase==='open_classic'&&val==='present'&&inscrits.length>=10&&inscrits.indexOf(me.name)===-1){alert("Le groupe est complet (10/10). Tu ne peux plus t'inscrire.");return;}
+    if(val==='absent'&&presence==='present'&&inscrits.indexOf(me.name)!==-1){
+      if(!confirm("Es-tu sûr de vouloir te désinscrire ?"))return;
+    }
   }
   // Optimistic UI : appliquer immédiatement sans attendre GAS
   presence=val;
@@ -1169,16 +1172,71 @@ function switchTeamSubTab(s){
 function switchStat(s){['perso','classe','rotation'].forEach(function(t){document.getElementById('stat-'+t).style.display=t===s?'block':'none';document.getElementById('pill-'+t).classList.toggle('active',t===s);});}
 
 function buildAdminList(){
-  var joueurs=(teamVoting&&teamVoting.eligible&&teamVoting.eligible.length)?teamVoting.eligible:DB.map(function(p){return p.name;});
-  document.getElementById('admin-list').innerHTML=joueurs.map(function(name){
-    return'<div class="admin-row"><span style="flex:1;font-size:14px;color:var(--silver-light);">'+name+'</span>'+
+  // Joueurs inscrits réguliers uniquement (sans ponctuels)
+  var ponctuelsNoms=(ponctuels||[]).map(function(p){return typeof p==='object'?p.nom:p;});
+  var joueurs=(teamVoting&&teamVoting.eligible&&teamVoting.eligible.length)
+    ?teamVoting.eligible.filter(function(n){return ponctuelsNoms.indexOf(n)===-1;})
+    :inscrits.filter(function(n){return ponctuelsNoms.indexOf(n)===-1;});
+  if(!joueurs.length)joueurs=DB.map(function(p){return p.name;});
+
+  var team1=teamVoting&&teamVoting.team1?teamVoting.team1:[];
+  var team2=teamVoting&&teamVoting.team2?teamVoting.team2:[];
+
+  var html=
+    // Équipe Bleue
+    '<div style="background:rgba(61,109,181,.12);border:1.5px solid rgba(61,109,181,.4);border-radius:10px;padding:12px;margin-bottom:10px;">'+
+    '<div style="font-size:12px;font-weight:700;color:#6fa3ef;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">🔵 Équipe Bleue</div>'+
+    '<div style="display:flex;gap:8px;">'+
+    '<button class="score-btn v1" id="eq1-v" onclick="selEquipe(1,\'V\')">V</button>'+
+    '<button class="score-btn" id="eq1-n" onclick="selEquipe(1,\'N\')">N</button>'+
+    '<button class="score-btn" id="eq1-d" onclick="selEquipe(1,\'D\')">D</button>'+
+    '</div></div>'+
+    // Équipe Rouge
+    '<div style="background:rgba(181,61,61,.12);border:1.5px solid rgba(181,61,61,.4);border-radius:10px;padding:12px;margin-bottom:14px;">'+
+    '<div style="font-size:12px;font-weight:700;color:#ef6f6f;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">🔴 Équipe Rouge</div>'+
+    '<div style="display:flex;gap:8px;">'+
+    '<button class="score-btn v2" id="eq2-v" onclick="selEquipe(2,\'V\')">V</button>'+
+    '<button class="score-btn" id="eq2-n" onclick="selEquipe(2,\'N\')">N</button>'+
+    '<button class="score-btn" id="eq2-d" onclick="selEquipe(2,\'D\')">D</button>'+
+    '</div></div>'+
+    // Correction individuelle
+    '<div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Correction individuelle</div>';
+
+  html+=joueurs.map(function(name){
+    var teamLabel='';
+    if(team1.indexOf(name)!==-1)teamLabel='<span style="font-size:10px;color:#6fa3ef;margin-left:4px;">🔵</span>';
+    else if(team2.indexOf(name)!==-1)teamLabel='<span style="font-size:10px;color:#ef6f6f;margin-left:4px;">🔴</span>';
+    return'<div class="admin-row"><span style="flex:1;font-size:14px;color:var(--silver-light);">'+name+teamLabel+'</span>'+
       '<div style="display:flex;gap:5px;">'+
       '<button class="rlabel sel-abs" id="la-'+name+'" onclick="selRes(&quot;'+name+'&quot;,&quot;&quot;)">—</button>'+
       '<button class="rlabel" id="lv-'+name+'" onclick="selRes(&quot;'+name+'&quot;,&quot;V&quot;)">V</button>'+
       '<button class="rlabel" id="ld-'+name+'" onclick="selRes(&quot;'+name+'&quot;,&quot;D&quot;)">D</button>'+
       '</div></div>';
   }).join('');
+
+  document.getElementById('admin-list').innerHTML=html;
   buildAdminScorePending();
+}
+
+function selEquipe(equipe,val){
+  // Mettre à jour les boutons de l'équipe
+  var prefix='eq'+equipe+'-';
+  ['v','n','d'].forEach(function(r){
+    var btn=document.getElementById(prefix+r);if(!btn)return;
+    btn.className='score-btn'+(equipe===1?' v1':' v2');
+    if(r===val.toLowerCase())btn.className+=(equipe===1?' selected-t1':' selected-t2');
+  });
+  if(val==='N'){
+    // Nul : ne pas toucher l'autre équipe
+    return;
+  }
+  // Appliquer le résultat aux joueurs de cette équipe
+  var team=equipe===1?(teamVoting&&teamVoting.team1?teamVoting.team1:[]):(teamVoting&&teamVoting.team2?teamVoting.team2:[]);
+  var ponctuelsNoms=(ponctuels||[]).map(function(p){return typeof p==='object'?p.nom:p;});
+  team.forEach(function(name){
+    if(ponctuelsNoms.indexOf(name)!==-1)return;
+    selRes(name,val);
+  });
 }
 
 function buildAdminScorePending(){
@@ -1217,7 +1275,11 @@ function selRes(name,val){
   document.getElementById('ld-'+name).className='rlabel'+(val==='D'?' sel-d':'');
 }
 function saveResults(){
-  var joueurs=(teamVoting&&teamVoting.eligible&&teamVoting.eligible.length)?teamVoting.eligible:DB.map(function(p){return p.name;});
+  var ponctuelsNoms=(ponctuels||[]).map(function(p){return typeof p==='object'?p.nom:p;});
+  var joueurs=(teamVoting&&teamVoting.eligible&&teamVoting.eligible.length)
+    ?teamVoting.eligible.filter(function(n){return ponctuelsNoms.indexOf(n)===-1;})
+    :inscrits.filter(function(n){return ponctuelsNoms.indexOf(n)===-1;});
+  if(!joueurs.length)joueurs=DB.map(function(p){return p.name;});
   var results={};
   joueurs.forEach(function(name){
     if(document.getElementById('lv-'+name)&&document.getElementById('lv-'+name).classList.contains('sel-v'))results[name]='V';
@@ -1637,6 +1699,7 @@ var selectedMVPCandidate=null;
 
 function buildMVPTab(){
   var el=document.getElementById('mvp-content');
+  selectedMVPCandidate=null;
 
   if(!mvpVoting||!mvpVoting.candidates){
     var label=getNextThursdayLabel();
@@ -1745,7 +1808,6 @@ function submitMVPVote(){
     if(!mvpVoting.voters)mvpVoting.voters=[];
     mvpVoting.voters.push(me.name);
     if(res.closed)mvpVoting.closed=true;
-    selectedMVPCandidate=null;
     buildMVPTab();
   }).catch(function(){alert('Erreur réseau');if(btn){btn.disabled=false;btn.textContent='Valider mon vote pour '+candidate;}});
 }
