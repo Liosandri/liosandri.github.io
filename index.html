@@ -420,7 +420,7 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
         <div id="pin-change-success" style="display:none;font-size:13px;color:#00c853;background:rgba(0,200,83,.12);border-radius:8px;padding:10px 14px;margin-top:8px;">✅ PIN changé !</div>
         <button class="btn-main" onclick="doChangePin()" style="margin-top:4px;">Changer mon PIN</button>
       </div>
-      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-07-31 14:30</div>
+      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-07-31 15:00</div>
     </div>
 
     <div id="tab-admin" style="display:none;">
@@ -971,7 +971,8 @@ function setPresence(val,silent){
     if(val==='absent'){
       var btnP=document.getElementById('btn-present');
       if(btnP&&btnP.classList.contains('selected-present')){
-        if(!confirm("Es-tu sûr de vouloir te désinscrire ?"))return;
+        showConfirmDesinscription(function(){setPresence('absent');});
+        return;
       }
     }
   }
@@ -1794,6 +1795,19 @@ function buildMVPTab(){
   }
 }
 
+var _confirmDesinscriptionCallback=null;
+function showConfirmDesinscription(callback){
+  _confirmDesinscriptionCallback=callback;
+  var el=document.getElementById('confirm-desinscription-overlay');
+  if(el){el.style.display='flex';}
+}
+function closeConfirmDesinscription(confirmed){
+  var el=document.getElementById('confirm-desinscription-overlay');
+  if(el){el.style.display='none';}
+  if(confirmed&&_confirmDesinscriptionCallback){_confirmDesinscriptionCallback();}
+  _confirmDesinscriptionCallback=null;
+}
+
 function selectMVPCandidate(name){
   selectedMVPCandidate=name;
   buildMVPTab();
@@ -1815,6 +1829,16 @@ function submitMVPVote(){
   }).catch(function(){alert('Erreur réseau');if(btn){btn.disabled=false;btn.textContent='Valider mon vote pour '+candidate;}});
 }
 </script>
+<div id="confirm-desinscription-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:2000;align-items:center;justify-content:center;">
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;width:88%;max-width:320px;">
+    <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px;">Se désinscrire ?</div>
+    <div style="font-size:14px;color:var(--text-muted);margin-bottom:20px;">Es-tu sûr de vouloir te retirer de la liste ?</div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeConfirmDesinscription(false)" style="flex:1;padding:13px;background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;font-weight:600;cursor:pointer;">Annuler</button>
+      <button onclick="closeConfirmDesinscription(true)" style="flex:1;padding:13px;background:var(--danger);border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;">Oui, me retirer</button>
+    </div>
+  </div>
+</div>
 <div class="absents-popup-overlay" id="absents-overlay" onclick="if(event.target===this)closeAbsentsPopup()">
   <div class="absents-popup">
     <h3>❌ Joueurs absents</h3>
