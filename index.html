@@ -420,7 +420,7 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
         <div id="pin-change-success" style="display:none;font-size:13px;color:#00c853;background:rgba(0,200,83,.12);border-radius:8px;padding:10px 14px;margin-top:8px;">✅ PIN changé !</div>
         <button class="btn-main" onclick="doChangePin()" style="margin-top:4px;">Changer mon PIN</button>
       </div>
-      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-07-31 16:30</div>
+      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-08-06 20:00</div>
     </div>
 
     <div id="tab-admin" style="display:none;">
@@ -1700,7 +1700,6 @@ var selectedMVPCandidate=null;
 
 function buildMVPTab(){
   var el=document.getElementById('mvp-content');
-  selectedMVPCandidate=null;
 
   if(!mvpVoting||!mvpVoting.candidates){
     var label=getNextThursdayLabel();
@@ -1822,6 +1821,7 @@ function submitMVPVote(){
     if(!mvpVoting.voters)mvpVoting.voters=[];
     mvpVoting.voters.push(me.name);
     if(res.closed)mvpVoting.closed=true;
+    selectedMVPCandidate=null;
     buildMVPTab();
   }).catch(function(){alert('Erreur réseau');if(btn){btn.disabled=false;btn.textContent='Valider mon vote pour '+candidate;}});
 }
