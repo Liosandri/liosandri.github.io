@@ -79,6 +79,10 @@ input:focus,select:focus{border-color:var(--blue);}
 .btn-presence.selected-absent{background:rgba(255,59,48,.15);color:var(--danger);border-color:var(--danger);}
 .btn-presence.selected-pending{background:rgba(255,149,0,.12);color:#ff9500;border-color:#ff9500;}
 .banner-danger{background:rgba(255,59,48,.12);color:var(--danger);border:1px solid rgba(255,59,48,.2);}
+#app-toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-20px);z-index:3000;background:#1c9c4a;color:#fff;font-size:14px;font-weight:600;padding:12px 20px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;display:flex;align-items:center;gap:8px;max-width:88%;text-align:center;}
+#app-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#app-toast.toast-danger{background:#c0392b;}
+#app-toast.toast-info{background:#2d6db5;}
 .absents-popup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center;}
 .absents-popup-overlay.show{display:flex;}
 .absents-popup{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;min-width:280px;max-width:340px;width:90%;}
@@ -420,7 +424,7 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
         <div id="pin-change-success" style="display:none;font-size:13px;color:#00c853;background:rgba(0,200,83,.12);border-radius:8px;padding:10px 14px;margin-top:8px;">✅ PIN changé !</div>
         <button class="btn-main" onclick="doChangePin()" style="margin-top:4px;">Changer mon PIN</button>
       </div>
-      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-08-06 20:00</div>
+      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-08-21 11:00</div>
     </div>
 
     <div id="tab-admin" style="display:none;">
@@ -984,28 +988,73 @@ function setPresence(val,silent,skipConfirm){
   _applyPresenceUI(val);
   updateBannerZone();updateListeZone();updateBoutons();updatePonctuelZone();
   if(!silent&&val!=='pending'){
-    callSheet('register',{player:me.name,status:val,osId:window._currentOsId||''}).then(function(res){
-      if(res&&res.inscrits){
-        inscrits=res.inscrits;
-        if(res.registrationTimes)registrationTimes=res.registrationTimes;
-        // Corriger si le serveur a une réponse différente (ex: exclu par rotation)
-        var confirmedPresent=inscrits.indexOf(me.name)!==-1;
-        if(val==='present'&&!confirmedPresent){presence='absent';_applyPresenceUI('absent');}
-        else{_applyPresenceUI(presence);}
-        if(res.teamVoting)teamVoting=res.teamVoting;
+    _registerWithRetry(val,1);
+  }
+}
+function _fetchWithTimeout(promise,ms){
+  return new Promise(function(resolve,reject){
+    var timer=setTimeout(function(){reject(new Error('timeout'));},ms);
+    promise.then(function(res){clearTimeout(timer);resolve(res);}).catch(function(err){clearTimeout(timer);reject(err);});
+  });
+}
+
+function _registerWithRetry(val,attemptsLeft){
+  _fetchWithTimeout(callSheet('register',{player:me.name,status:val,osId:window._currentOsId||''}),7000).then(function(res){
+    if(res&&res.inscrits){
+      inscrits=res.inscrits;
+      if(res.registrationTimes)registrationTimes=res.registrationTimes;
+      var confirmedPresent=inscrits.indexOf(me.name)!==-1;
+      if(val==='present'&&!confirmedPresent){
+        // Le serveur n'a pas confirmé — on retente une fois avant d'abandonner
+        if(attemptsLeft>0){_registerWithRetry(val,attemptsLeft-1);return;}
+        presence='absent';_applyPresenceUI('absent');
+        showRegisterError();
+      } else {
+        _applyPresenceUI(presence);
+        if(val==='present')showToast('✅ Inscription confirmée !');
+        else if(val==='absent')showToast('👋 Absence enregistrée',"info");
       }
-      updateListeZone();updateBoutons();updateBannerZone();updatePonctuelZone();
-    }).catch(function(){
-      // En cas d'erreur réseau, revenir à l'état précédent
+      if(res.teamVoting)teamVoting=res.teamVoting;
+    } else if(res&&res.error){
+      if(attemptsLeft>0){_registerWithRetry(val,attemptsLeft-1);return;}
       var prev=val==='present'?'absent':'present';
       presence=prev;
       if(prev==='present'){if(inscrits.indexOf(me.name)===-1)inscrits.push(me.name);}
       else{inscrits=inscrits.filter(function(n){return n!==me.name;});}
       _applyPresenceUI(prev);
-      updateListeZone();updateBoutons();updateBannerZone();
-    });
-  }
+      alert(res.error);
+    }
+    updateListeZone();updateBoutons();updateBannerZone();updatePonctuelZone();
+  }).catch(function(){
+    if(attemptsLeft>0){_registerWithRetry(val,attemptsLeft-1);return;}
+    // Après retry épuisé : revenir à l'état précédent et prévenir clairement
+    var prev=val==='present'?'absent':'present';
+    presence=prev;
+    if(prev==='present'){if(inscrits.indexOf(me.name)===-1)inscrits.push(me.name);}
+    else{inscrits=inscrits.filter(function(n){return n!==me.name;});}
+    _applyPresenceUI(prev);
+    updateListeZone();updateBoutons();updateBannerZone();
+    showRegisterError();
+  });
 }
+
+var _toastTimer=null;
+function showToast(message,type){
+  var el=document.getElementById('app-toast');
+  if(!el)return;
+  el.textContent=message;
+  el.className='';
+  if(type==='danger')el.classList.add('toast-danger');
+  else if(type==='info')el.classList.add('toast-info');
+  el.classList.add('show');
+  if(_toastTimer)clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(function(){el.classList.remove('show');},2600);
+}
+
+function showRegisterError(){
+  showToast("⚠️ Inscription non confirmée, réessaie","danger");
+}
+
 function _applyPresenceUI(val){
   presence=val;
   var bp=document.getElementById('btn-present'),bpd=document.getElementById('btn-pending'),ba=document.getElementById('btn-absent');
@@ -1413,7 +1462,7 @@ function doAddPonctuel(){
   if(!nom){errEl.textContent='Le nom est obligatoire.';errEl.style.display='block';return;}
   var stats=[atk,def,pss,sta,kep];for(var i=0;i<stats.length;i++){if(!stats[i]||stats[i]<1||stats[i]>99){errEl.textContent='Toutes les stats sont obligatoires (1–99).';errEl.style.display='block';return;}}
   var btn=document.querySelector('#ponctuel-modal .btn-main');btn.textContent='Inscription...';btn.disabled=true;
-  callSheet('addPonctuel',{nom:nom,atk:atk,def:def,pss:pss,sta:sta,kep:kep,ajoutePar:me?me.name:''}).then(function(res){if(res.error){errEl.textContent=res.error;errEl.style.display='block';btn.textContent='Inscrire le joueur';btn.disabled=false;return;}ponctuels=res.ponctuels||ponctuels;if(res.teamVoting)teamVoting=res.teamVoting;closePonctuelModal();updatePonctuelZone();updateBoutons();updateListeZone();if(teamVoting&&teamVoting.team1)buildTeamTab();}).catch(function(){errEl.textContent='Erreur serveur.';errEl.style.display='block';btn.textContent='Inscrire le joueur';btn.disabled=false;});
+  callSheet('addPonctuel',{nom:nom,atk:atk,def:def,pss:pss,sta:sta,kep:kep,ajoutePar:me?me.name:''}).then(function(res){if(res.error){errEl.textContent=res.error;errEl.style.display='block';btn.textContent='Inscrire le joueur';btn.disabled=false;return;}ponctuels=res.ponctuels||ponctuels;if(res.teamVoting)teamVoting=res.teamVoting;closePonctuelModal();updatePonctuelZone();updateBoutons();updateListeZone();if(teamVoting&&teamVoting.team1)buildTeamTab();showToast('✅ '+nom+' ajouté au groupe !');}).catch(function(){errEl.textContent='Erreur serveur.';errEl.style.display='block';btn.textContent='Inscrire le joueur';btn.disabled=false;});
 }
 function doRemovePonctuel(nom){if(!confirm('Retirer '+nom+' de la liste ?'))return;callSheet('removePonctuel',{nom:nom}).then(function(res){if(res.error){alert(res.error);return;}ponctuels=res.ponctuels||[];updatePonctuelZone();updateBoutons();});}
 
@@ -1823,9 +1872,11 @@ function submitMVPVote(){
     if(res.closed)mvpVoting.closed=true;
     selectedMVPCandidate=null;
     buildMVPTab();
+    showToast('✅ Vote enregistré pour '+candidate+' !');
   }).catch(function(){alert('Erreur réseau');if(btn){btn.disabled=false;btn.textContent='Valider mon vote pour '+candidate;}});
 }
 </script>
+<div id="app-toast"></div>
 <div id="confirm-desinscription-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:2000;align-items:center;justify-content:center;">
   <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;width:88%;max-width:320px;">
     <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px;">Se désinscrire ?</div>
