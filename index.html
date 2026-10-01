@@ -424,7 +424,7 @@ body.light-mode input[type=tel],body.light-mode input[type=password],body.light-
         <div id="pin-change-success" style="display:none;font-size:13px;color:#00c853;background:rgba(0,200,83,.12);border-radius:8px;padding:10px 14px;margin-top:8px;">✅ PIN changé !</div>
         <button class="btn-main" onclick="doChangePin()" style="margin-top:4px;">Changer mon PIN</button>
       </div>
-      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-09-24 19:00</div>
+      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:24px;padding-bottom:8px;">Version 2026-09-24 20:00</div>
     </div>
 
     <div id="tab-admin" style="display:none;">
@@ -939,7 +939,7 @@ function getCurrentPhase(){
   var now=new Date();
   var paris=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Paris'}));
   var day=paris.getDay(),h=paris.getHours()+paris.getMinutes()/60;
-  if(day===4){return h<12?'open_classic':'closed';}
+  if(day===4){return h<19?'open_classic':'closed';}
   else if(day===5){if(h<8)return 'closed';else if(h<12)return 'open_rotation';else return 'open_classic';}
   return 'open_classic';
 }
